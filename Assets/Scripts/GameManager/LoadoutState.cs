@@ -151,6 +151,7 @@ public class LoadoutState : AState
             {
                 runButton.interactable = true;
                 runButton.GetComponentInChildren<Text>().text = "Run!";
+                runButton.onClick.Invoke();
             }
         }
 
