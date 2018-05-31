@@ -344,11 +344,13 @@ public class GameState : AState
 
         ClearPowerup();
 
-        gameOverPopup.SetActive(true);
+        //gameOverPopup.SetActive(true);
+        GameOver();
     }
 
     public void GameOver()
     {
+        //trackManager.isRerun = false;
         manager.SwitchState("GameOver");
     }
 
