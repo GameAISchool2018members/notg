@@ -20,16 +20,7 @@ public class AssetBundlesDatabaseHandler
     static IEnumerator AsyncLoad()
     {
 
-        // Android store streams assets in a compressed archive, so different file system.
-#if !UNITY_EDITOR
-#if UNITY_ANDROID
-        AssetBundleManager.BaseDownloadingURL = Application.streamingAssetsPath + "/AssetBundles/"+Utility.GetPlatformName()+"/";
-#else
-        AssetBundleManager.BaseDownloadingURL = "file://" + Application.streamingAssetsPath + "/AssetBundles/"+Utility.GetPlatformName()+"/";
-#endif
-#else
         AssetBundleManager.BaseDownloadingURL = "file://" + Application.streamingAssetsPath + "/AssetBundles/" + Utility.GetPlatformName() + "/";
-#endif
 
         var request = AssetBundleManager.Initialize();
         if (request != null)
