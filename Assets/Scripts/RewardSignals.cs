@@ -4,14 +4,19 @@ using UnityEngine;
 
 public class RewardSignals : MonoBehaviour {
 
-	public int reward;
+	public float reward;
 
-	public void updateSignal(int newReward){
+	public void updateSignal(float newReward){
 		this.reward+= newReward;
-		print ("Rewards right now: " + reward);
+        //Debug.Log("Reward is " + reward);
 	}
 
-	public int getSignal(){
+	public float getSignal(){
 		return this.reward;
 	}
+
+    public void Reset()
+    {
+        this.reward = 0;
+    }
 }
