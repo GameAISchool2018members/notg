@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 using System.Collections.Generic;
 
 /// <summary>
@@ -73,6 +73,8 @@ public class CharacterInputController : Agent
     protected const float k_ShadowGroundOffset = 0.01f;
     protected const float k_TrackSpeedToJumpAnimSpeedRatio = 0.6f;
     protected const float k_TrackSpeedToSlideAnimSpeedRatio = 0.9f;
+	public Dictionary<string,float> obstacleMapping;
+	public List<float> featureVector;
 
     public RewardSignals reward;
 
@@ -83,7 +85,12 @@ public class CharacterInputController : Agent
         m_CurrentLife = 0;
         m_Sliding = false;
         m_SlideStart = 0.0f;
-
+		obstacleMapping = new Dictionary<string, float>();
+		obstacleMapping.Add ("Pickup(Clone)",0);
+		obstacleMapping.Add ("ObstacleBin(Clone)",1);
+		obstacleMapping.Add ("ObstacleWheelyBin(Clone)",1);
+		obstacleMapping.Add ("ObstacleRoadworksCone(Clone)",1);
+		featureVector = new List<float> ();
         reward = FindObjectOfType<RewardSignals>();
     }
 
@@ -166,8 +173,122 @@ public class CharacterInputController : Agent
         }
     }
 
+	public List<float> getFeatureVector(){
+		return featureVector;
+	}
+
+	public void calculateFeatureVector(){
+ 		featureVector = new List<float> ();
+
+		RaycastHit hit;
+
+		Vector3 highRayStraight = new Vector3 (0, transform.position.y + 1.2f, transform.position.z);
+		Vector3 lowRayStraight = new Vector3 (0, transform.position.y + 0.6f, transform.position.z);
+
+		Vector3 lowRayLeft = new Vector3 (-1, transform.position.y + 0.6f, transform.position.z);
+		Vector3 lowRayRight = new Vector3 (+1, transform.position.y + 0.6f, transform.position.z);
+
+		Vector3 HighRayLeft = new Vector3 (-1, transform.position.y + 1.2f, transform.position.z);
+		Vector3 HighRayRight = new Vector3 (+1, transform.position.y + 1.2f, transform.position.z);
+
+		Vector3 ahead = transform.forward;
+		ahead = ahead.normalized;
+		float rayLength = 30.0f;
+
+		// IF NO RAY THEN USE 1
+
+		// HIGH LEFT
+		if (Physics.Raycast (HighRayLeft, ahead, out hit, rayLength)) {
+			//print ("Left "+hit.transform.position);
+			//print ("Left High: " + obstacleMapping [hit.collider.gameObject.name]);
+
+			float distance = Vector3.Distance (hit.transform.position, transform.position);
+			float normDist = (float) ((rayLength - distance) / rayLength - 0.1);   // max - cur / max - min
+			featureVector.Add(normDist);
+			//featureVector.Add (obstacleMapping [hit.collider.gameObject.name]);
+		} else {
+			//featureVector.Add (0.0f);
+			featureVector.Add (1.0f);
+		}
+
+		// HIGH RIGHT
+		if(Physics.Raycast(HighRayRight, ahead, out hit, rayLength))
+		{
+			//print ("Right "+hit.transform.position);
+			//print ("Right High: "+ obstacleMapping[hit.collider.gameObject.name]);
+			float distance = Vector3.Distance (hit.transform.position, transform.position);
+			float normDist = (float) ((rayLength - distance) / rayLength - 0.1);   // max - cur / max - min
+			featureVector.Add(normDist);
+			//featureVector.Add (obstacleMapping [hit.collider.gameObject.name]);
+		}else {
+			//featureVector.Add (0.0f);
+			featureVector.Add (1.0f);
+		}
+
+		// LOW LEFT
+		if(Physics.Raycast(lowRayLeft, ahead, out hit, rayLength))
+		{
+			//print ("Left "+hit.transform.position);
+			//print ("Left low: "+ obstacleMapping[hit.collider.gameObject.name]);
+			float distance = Vector3.Distance (hit.transform.position, transform.position);
+			float normDist = (float) ((rayLength - distance) / rayLength - 0.1);   // max - cur / max - min
+			featureVector.Add(normDist);
+			//featureVector.Add (obstacleMapping [hit.collider.gameObject.name]);
+		}else {
+			//featureVector.Add (0.0f);
+			featureVector.Add (1.0f);
+		}
+
+		// LOW RIGHT
+		if(Physics.Raycast(lowRayRight, ahead, out hit, rayLength))
+		{
+			//print ("Right "+hit.transform.position);
+			//print ("Right low: "+ obstacleMapping[hit.collider.gameObject.name]);
+			float distance = Vector3.Distance (hit.transform.position, transform.position);
+			float normDist = (float) ((rayLength - distance) / rayLength - 0.1);   // max - cur / max - min
+			featureVector.Add(normDist);
+			//featureVector.Add (obstacleMapping [hit.collider.gameObject.name]);
+		}else {
+			//featureVector.Add (0.0f);
+			featureVector.Add (1.0f);
+		}
+
+		// HIGH STRAIGHT
+		if(Physics.Raycast(highRayStraight, ahead, out hit, rayLength))
+		{
+			//print ("heah "+hit.transform.position);
+			//print ("HIGH: "+ obstacleMapping[hit.collider.gameObject.name]);
+			float distance = Vector3.Distance (hit.transform.position, transform.position);
+			float normDist = (float) ((rayLength - distance) / rayLength - 0.1);   // max - cur / max - min
+			featureVector.Add(normDist);
+			//featureVector.Add (obstacleMapping [hit.collider.gameObject.name]);
+		}else {
+			//featureVector.Add (0.0f);
+			featureVector.Add (1.0f);
+		}
+
+		// LOW STRAIGHT
+		if(Physics.Raycast(lowRayStraight, ahead, out hit, rayLength))
+		{
+			//print ("heah "+hit.transform.position);
+			//print ("LOW: "+ obstacleMapping[hit.collider.gameObject.name]);
+			float distance = Vector3.Distance (hit.transform.position, transform.position);
+			float normDist = (float) ((rayLength - distance) / rayLength - 0.1);  // max - cur / max - min
+			featureVector.Add(normDist);
+			//featureVector.Add (obstacleMapping [hit.collider.gameObject.name]);
+		}else {
+			//featureVector.Add (0.0f);
+			featureVector.Add (1.0f);
+		}
+	}
+	
     protected void Update()
     {
+
+		// OUR RAYCASTING START
+		calculateFeatureVector ();
+		// OUR RAYCASTING END
+
 #if UNITY_EDITOR || UNITY_STANDALONE
         // Use key input in editor or standalone
         if (Input.GetKeyDown(KeyCode.LeftArrow))
@@ -289,8 +410,7 @@ public class CharacterInputController : Agent
         characterCollider.transform.localPosition = Vector3.MoveTowards(characterCollider.transform.localPosition, verticalTargetPosition, laneChangeSpeed * Time.deltaTime);
 
         // Put blob shadow under the character.
-        RaycastHit hit;
-        if (Physics.Raycast(characterCollider.transform.position + Vector3.up, Vector3.down, out hit, k_ShadowRaycastDistance, m_ObstacleLayer))
+        if(Physics.Raycast(characterCollider.transform.position + Vector3.up, Vector3.down, out hit, k_ShadowRaycastDistance, m_ObstacleLayer))
         {
             blobShadow.transform.position = hit.point + Vector3.up * k_ShadowGroundOffset;
         }
