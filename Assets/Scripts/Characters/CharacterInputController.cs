@@ -414,18 +414,30 @@ public class CharacterInputController : Agent
     {
         int action = Mathf.FloorToInt(vectorAction[0]);
 
-        //switch(action){
-        //    case 0:
-        //        ChangeLane(-1);
-        //        break;
-        //    case 1:
-        //        ChangeLane(1);
-        //        break;
-        //}
+        switch(action){
+            case 0:
+                ChangeLane(-1);
+                break;
+            case 1:
+                ChangeLane(1);
+                break;
+        }
 
-        reward.updateSignal(0.1f);
-        AddReward(reward.getSignal());
+        var currentReward = reward.getSignal();
+        if (Mathf.Approximately(0f, currentReward)) {
+            currentReward = 0.001f;
+        }
+        AddReward(currentReward);
         reward.Reset();
+
+        if (currentLife <= 0) {
+            Done();
+        }
+    }
+
+    public override void AgentReset()
+    {
+        //GameManager.instance.SwitchState("GameOver");
     }
 
     #endregion

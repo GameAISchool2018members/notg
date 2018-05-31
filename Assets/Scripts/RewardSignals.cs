@@ -12,7 +12,7 @@ public class RewardSignals : MonoBehaviour {
 	}
 
 	public float getSignal(){
-		return this.reward;
+        return Mathf.Clamp(reward, -1f, 1f);
 	}
 
     public void Reset()
