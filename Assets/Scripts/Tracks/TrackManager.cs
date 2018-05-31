@@ -471,6 +471,11 @@ public class TrackManager : MonoBehaviour
                 if (!characterController.isVerticalMovementEnabled)
                     while (newObstacle.GetType() == typeof(AllLaneObstacle))
                         newObstacle = segment.possibleObstacles[Random.Range(0, segment.possibleObstacles.Length)];
+                        if (newObstacle is Missile ||
+                            newObstacle is PatrollingObstacle) {
+                            Debug.LogWarning("Moving Target skipped");
+                            return;
+                        }
                 newObstacle.Spawn(segment, segment.obstaclePositions[i]);
 			}
 		}
