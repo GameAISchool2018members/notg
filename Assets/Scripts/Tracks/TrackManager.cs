@@ -110,6 +110,8 @@ public class TrackManager : MonoBehaviour
 	{
         m_ScoreAccum = 0.0f;
 		s_Instance = this;
+
+        Coin.coinPool = new Pooler(currentTheme.collectiblePrefab, k_StartingCoinPoolSize);
     }
 
 	public void StartMove(bool isRestart = true)
@@ -194,8 +196,6 @@ public class TrackManager : MonoBehaviour
 			m_ScoreAccum = 0;
 
             m_SafeSegementLeft = k_StartingSafeSegments;
-
-            Coin.coinPool = new Pooler(currentTheme.collectiblePrefab, k_StartingCoinPoolSize);
 
             PlayerData.instance.StartRunMissions(this);
 
