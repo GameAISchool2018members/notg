@@ -45,6 +45,9 @@ public class TrackManager : MonoBehaviour
 	public ConsumableDatabase consumableDatabase;
 	public MeshFilter skyMeshFilter;
 
+    public bool premiumsEnabled;
+    public bool powerupsEnabled;
+
 	[Header("Parallax")]
 	public Transform parallaxRoot;
 	public float parallaxRatio = 0.5f;
@@ -469,13 +472,16 @@ public class TrackManager : MonoBehaviour
 			{
                 Obstacle newObstacle = segment.possibleObstacles[Random.Range(0, segment.possibleObstacles.Length)];
                 if (!characterController.isVerticalMovementEnabled)
-                    while (newObstacle.GetType() == typeof(AllLaneObstacle))
+                {
+                    // TODO fix pls
+                    while (newObstacle is AllLaneObstacle)
                         newObstacle = segment.possibleObstacles[Random.Range(0, segment.possibleObstacles.Length)];
-                        if (newObstacle is Missile ||
-                            newObstacle is PatrollingObstacle) {
-                            Debug.LogWarning("Moving Target skipped");
-                            return;
-                        }
+                }
+                
+                if (newObstacle is Missile ||
+                    newObstacle is PatrollingObstacle) {
+                    return;
+                }
                 newObstacle.Spawn(segment, segment.obstaclePositions[i]);
 			}
 		}
@@ -489,8 +495,8 @@ public class TrackManager : MonoBehaviour
 		float currentWorldPos = 0.0f;
 		int currentLane = Random.Range(0,3);
 
-		float powerupChance = Mathf.Clamp01(Mathf.Floor(m_TimeSincePowerup) * 0.5f * 0.001f);
-		float premiumChance = Mathf.Clamp01(Mathf.Floor(m_TimeSinceLastPremium) * 0.5f * 0.0001f);
+        float powerupChance = powerupsEnabled ? Mathf.Clamp01(Mathf.Floor(m_TimeSincePowerup) * 0.5f * 0.001f) : 0f;
+        float premiumChance = premiumsEnabled ? Mathf.Clamp01(Mathf.Floor(m_TimeSinceLastPremium) * 0.5f * 0.0001f) : 0f;
 
 		while (currentWorldPos < segment.worldLength)
 		{
@@ -561,7 +567,5 @@ public class TrackManager : MonoBehaviour
 	{
 		int finalAmount = amount;
 		m_Score += finalAmount * m_Multiplier;
-
-		GameObject.Find ("CharacterSlot").GetComponent<RewardSignals> ().updateSignal (finalAmount * m_Multiplier); // UPDATE THE REWARD SIGNAL WITH TIME 
 	}
 }

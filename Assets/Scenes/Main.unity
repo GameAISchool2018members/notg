@@ -8191,14 +8191,14 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   brainParameters:
-    vectorObservationSize: 0
+    vectorObservationSize: 6
     numStackedVectorObservations: 1
     vectorActionSize: 2
     cameraResolutions: []
     vectorActionDescriptions: []
     vectorActionSpaceType: 0
     vectorObservationSpaceType: 1
-  brainType: 2
+  brainType: 0
   CoreBrains: []
   instanceID: 0
 --- !u!1 &863210674
@@ -21819,6 +21819,8 @@ MonoBehaviour:
   invincible: 0
   consumableDatabase: {fileID: 11400000, guid: 5d316f81231c9964dadda0b50ca7ae6b, type: 2}
   skyMeshFilter: {fileID: 201362454}
+  premiumsEnabled: 0
+  powerupsEnabled: 0
   parallaxRoot: {fileID: 1617204952}
   parallaxRatio: 0.8
 --- !u!4 &1958487561
@@ -26185,13 +26187,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ce47d421cd0db864a9139849f62dedeb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  brain: {fileID: 0}
+  brain: {fileID: 861333921}
   agentParameters:
     agentCameras: []
     maxStep: 0
     resetOnDone: 1
     onDemandDecision: 0
-    numberOfActionsBetweenDecisions: 0
+    numberOfActionsBetweenDecisions: 1
   trackManager: {fileID: 1958487560}
   character: {fileID: 0}
   characterCollider: {fileID: 1144878499}
@@ -26200,14 +26202,14 @@ MonoBehaviour:
   laneChangeSpeed: 14
   maxLife: 3
   inventory: {fileID: 0}
-  isVerticalMovementEnabled: 1
+  isVerticalMovementEnabled: 0
   jumpLength: 6
   jumpHeight: 1.2
   slideLength: 7
   slideSound: {fileID: 8300000, guid: febd5a5a8b245774fbfa9f0bef51e0b6, type: 3}
   powerUpUseSound: {fileID: 8300000, guid: defdb98bfddc24748aead1ce73ba7972, type: 3}
   powerupSource: {fileID: 2094493435}
-  reward: {fileID: 0}
+  featureVector: []
 --- !u!4 &2094493433
 Transform:
   m_ObjectHideFlags: 0

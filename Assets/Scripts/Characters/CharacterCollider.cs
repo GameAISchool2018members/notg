@@ -114,7 +114,8 @@ public class CharacterCollider : MonoBehaviour
 				controller.coins += 1;
 				m_Audio.PlayOneShot(coinSound);
 
-				GetComponent<RewardSignals> ().updateSignal(0.5f); // Everytime it gets a coint the positive reward is updated 
+
+                controller.CoinCollected(); // Everytime it gets a coint the positive reward is updated 
             }
         }
         else if(c.gameObject.layer == k_ObstacleLayerIndex)
@@ -140,7 +141,7 @@ public class CharacterCollider : MonoBehaviour
 			controller.currentLife -= 1;
             controller.character.animator.SetTrigger(s_HitHash);
 
-			GetComponent<RewardSignals> ().updateSignal (-1f); // Everytime it hits an obstacle a negative reward is given 
+            controller.ObstacleCollided(); // Everytime it hits an obstacle a negative reward is given 
 
 			if (controller.currentLife > 0)
 			{
