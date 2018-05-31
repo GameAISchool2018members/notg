@@ -557,10 +557,11 @@ public class TrackManager : MonoBehaviour
 
 	}
 
-
     public void AddScore(int amount)
 	{
 		int finalAmount = amount;
 		m_Score += finalAmount * m_Multiplier;
+
+		GameObject.Find ("CharacterSlot").GetComponent<RewardSignals> ().updateSignal (finalAmount * m_Multiplier); // UPDATE THE REWARD SIGNAL WITH TIME 
 	}
 }
