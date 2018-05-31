@@ -8191,7 +8191,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   brainParameters:
-    vectorObservationSize: 1
+    vectorObservationSize: 0
     numStackedVectorObservations: 1
     vectorActionSize: 2
     cameraResolutions: []
@@ -26196,6 +26196,7 @@ MonoBehaviour:
   character: {fileID: 0}
   characterCollider: {fileID: 1144878499}
   blobShadow: {fileID: 184212906}
+  rayPerception: {fileID: 0}
   laneChangeSpeed: 14
   maxLife: 3
   inventory: {fileID: 0}
@@ -26206,6 +26207,7 @@ MonoBehaviour:
   slideSound: {fileID: 8300000, guid: febd5a5a8b245774fbfa9f0bef51e0b6, type: 3}
   powerUpUseSound: {fileID: 8300000, guid: defdb98bfddc24748aead1ce73ba7972, type: 3}
   powerupSource: {fileID: 2094493435}
+  reward: {fileID: 0}
 --- !u!4 &2094493433
 Transform:
   m_ObjectHideFlags: 0
