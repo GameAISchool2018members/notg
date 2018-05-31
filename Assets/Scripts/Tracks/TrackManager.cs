@@ -467,7 +467,11 @@ public class TrackManager : MonoBehaviour
 		{
 			for (int i = 0; i < segment.obstaclePositions.Length; ++i)
 			{
-				segment.possibleObstacles[Random.Range(0, segment.possibleObstacles.Length)].Spawn(segment, segment.obstaclePositions[i]);
+                Obstacle newObstacle = segment.possibleObstacles[Random.Range(0, segment.possibleObstacles.Length)];
+                if (!characterController.isVerticalMovementEnabled)
+                    while (newObstacle.GetType() == typeof(AllLaneObstacle))
+                        newObstacle = segment.possibleObstacles[Random.Range(0, segment.possibleObstacles.Length)];
+                newObstacle.Spawn(segment, segment.obstaclePositions[i]);
 			}
 		}
 

@@ -30,7 +30,9 @@ public class CharacterInputController : MonoBehaviour
 	public bool isJumping { get { return m_Jumping; } }
 	public bool isSliding { get { return m_Sliding; } }
 
-	[Header("Controls")]
+    [Header("Controls")]
+    public bool isVerticalMovementEnabled = true;
+
 	public float jumpLength = 2.0f;     // Distance jumped
 	public float jumpHeight = 1.2f;
 
@@ -166,11 +168,11 @@ public class CharacterInputController : MonoBehaviour
         {
             ChangeLane(1);
         }
-        else if(Input.GetKeyDown(KeyCode.UpArrow))
+        else if(Input.GetKeyDown(KeyCode.UpArrow) && isVerticalMovementEnabled)
         {
             Jump();
         }
-		else if (Input.GetKeyDown(KeyCode.DownArrow))
+		else if (Input.GetKeyDown(KeyCode.DownArrow) && isVerticalMovementEnabled)
 		{
 			if(!m_Sliding)
 				Slide();
