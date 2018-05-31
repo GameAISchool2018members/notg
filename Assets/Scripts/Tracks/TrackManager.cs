@@ -127,7 +127,7 @@ public class TrackManager : MonoBehaviour
 	IEnumerator WaitToStart()
 	{
 		characterController.character.animator.Play(s_StartHash);
-		float length = k_CountdownToStartLength;
+        float length = -1;// k_CountdownToStartLength;
 		m_TimeToStart = length;
 
 		while(m_TimeToStart >= 0)
