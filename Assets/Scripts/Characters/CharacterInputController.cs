@@ -624,6 +624,7 @@ public class CharacterInputController : Agent
     }
 
     private float[] lanes;
+    private const int MetersForAward = 10;
 
     public override void CollectObservations()
     {
@@ -649,8 +650,9 @@ public class CharacterInputController : Agent
         //    AddVectorObs(featureVector[i]);
         //}
     }
-    // TODO add lane info 1-hot
     // TODO tensorboard, maybe inrease enthropy reg
+
+    private int lastMeterPassed;
     public override void AgentAction(float[] vectorAction, string textAction)
     {
         int action = Mathf.FloorToInt(vectorAction[0]);
@@ -667,12 +669,13 @@ public class CharacterInputController : Agent
 
         //if (Mathf.Approximately(0f, GetReward())) {
         //if (trackManager.score % 100 == 0){
-        AddReward(0.01f);
-    //}
-        //}
+        int currentMeter = Mathf.FloorToInt(trackManager.worldDistance);
+        if (currentMeter > lastMeterPassed && currentMeter > 0 && currentMeter % MetersForAward == 0) {
+            AddReward(1f);
+            lastMeterPassed = currentMeter;            
+        }
 
         if (currentLife <= 0) {
-            Debug.Log("Im done");
             Done();
         }
     }
@@ -680,6 +683,7 @@ public class CharacterInputController : Agent
     public override void AgentReset()
     {
         //ResetFeatures();
+        lastMeterPassed = 0;
 
         ((GameState)GameManager.instance.FindState("Game")).ResetAll();
     }
