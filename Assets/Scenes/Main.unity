@@ -8191,7 +8191,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   brainParameters:
-    vectorObservationSize: 45
+    vectorObservationSize: 57
     numStackedVectorObservations: 1
     vectorActionSize: 2
     cameraResolutions: []
@@ -10885,7 +10885,7 @@ MonoBehaviour:
     width: 1280
     height: 720
     qualityLevel: 0
-    timeScale: 15
+    timeScale: 10
     targetFrameRate: 60
   inferenceConfiguration:
     width: 1280

@@ -636,7 +636,7 @@ public class CharacterInputController : Agent
         const float lowRayHeight = 0.1f;
         const float highRayHeight = 1.2f;
 
-        var angles = new float[] { 30f, 60f, 75f, 90f, 105f, 120f, 150f };
+        var angles = new float[] { 0f, 30f, 60f, 75f, 90f, 105f, 120f, 150f, 180f };
 
         var tags = new string[] { "obstacle" };
         List<float> highPerceptions = rayPerception.Perceive(rayLength, angles, tags, lowRayHeight, 0f);
@@ -671,7 +671,7 @@ public class CharacterInputController : Agent
         //if (trackManager.score % 100 == 0){
         int currentMeter = Mathf.FloorToInt(trackManager.worldDistance);
         if (currentMeter > lastMeterPassed && currentMeter > 0 && currentMeter % MetersForAward == 0) {
-            AddReward(1f);
+            AddReward(0.5f);
             lastMeterPassed = currentMeter;            
         }
 
@@ -693,7 +693,7 @@ public class CharacterInputController : Agent
     }
 
     public void ObstacleCollided() {
-        AddReward(-1f);
+        AddReward(-2f);
     }
 
     private void ResetFeatures()
