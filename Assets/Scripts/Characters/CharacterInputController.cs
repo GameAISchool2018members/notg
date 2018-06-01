@@ -596,12 +596,11 @@ public class CharacterInputController : Agent
     public override void CollectObservations()
     {
         // 6 DOF raycasts
-        const float rayLength = 12.0f;
-        const float lowRayHeight = 0.3f;
+        const float rayLength = 30.0f;
+        const float lowRayHeight = 0.1f;
         const float highRayHeight = 1.2f;
 
-        //var angles = new float[] { 0f, 30f, 60f, 90f, 120f, 150f, 180f };
-        float[] angles = { 20f, 60f, 90f, 120f, 160f };
+        var angles = new float[] { 30f, 60f, 75f, 90f, 105f, 120f, 150f };
 
         List<float> highPerceptions = rayPerception.Perceive(rayLength, angles, new string[] { "obstacle", "fish" }, lowRayHeight, 0f);
         List<float> lowPerceptions = rayPerception.Perceive(rayLength, angles, new string[] { "obstacle", "fish" }, highRayHeight, 0f);
@@ -645,12 +644,12 @@ public class CharacterInputController : Agent
         ((GameState)GameManager.instance.FindState("Game")).ResetAll();
     }
 
-    public void CoinCollected() {
+    public void CoinCollided() {
         AddReward(0.1f);
     }
 
     public void ObstacleCollided() {
-        SetReward(-1f);
+        AddReward(-1f);
     }
 
     private void ResetFeatures()

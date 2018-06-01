@@ -8191,14 +8191,14 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   brainParameters:
-    vectorObservationSize: 40
+    vectorObservationSize: 56
     numStackedVectorObservations: 1
     vectorActionSize: 2
     cameraResolutions: []
     vectorActionDescriptions: []
     vectorActionSpaceType: 0
     vectorObservationSpaceType: 1
-  brainType: 0
+  brainType: 2
   CoreBrains: []
   instanceID: 0
 --- !u!1 &863210674
@@ -21847,7 +21847,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 82be8ab7a7c661d4484416b1870501c4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  reward: 0
 --- !u!1 &1967966878
 GameObject:
   m_ObjectHideFlags: 0
@@ -26192,7 +26191,7 @@ MonoBehaviour:
     maxStep: 0
     resetOnDone: 1
     onDemandDecision: 0
-    numberOfActionsBetweenDecisions: 5
+    numberOfActionsBetweenDecisions: 3
   trackManager: {fileID: 1958487560}
   character: {fileID: 0}
   characterCollider: {fileID: 1144878499}

@@ -115,7 +115,7 @@ public class CharacterCollider : MonoBehaviour
 				m_Audio.PlayOneShot(coinSound);
 
 
-                controller.CoinCollected(); // Everytime it gets a coint the positive reward is updated 
+                controller.CoinCollided(); // Everytime it gets a coint the positive reward is updated 
             }
         }
         else if(c.gameObject.layer == k_ObstacleLayerIndex)
