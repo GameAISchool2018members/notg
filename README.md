@@ -115,3 +115,5 @@ INFO:unityagents: CharacterBrain: Step: 194000. Mean Reward: 3.140. Std of Rewar
 INFO:unityagents: CharacterBrain: Step: 196000. Mean Reward: 10.850. Std of Reward: 4.859.
 INFO:unityagents: CharacterBrain: Step: 198000. Mean Reward: 4.805. Std of Reward: 5.226.
 ```
+
+![Tensorflow board](https://github.com/GameAISchool2018members/notg/blob/master/Img/TensorFlow%20board.png)
