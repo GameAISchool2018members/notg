@@ -112,7 +112,8 @@ public class GameState : AState
         {
             m_TimeSinceStart = 0;
             trackManager.AICharacterController.currentLife = trackManager.AICharacterController.maxLife;
-            trackManager.humanCharacterController.currentLife = trackManager.humanCharacterController.maxLife;
+            if (trackManager.humanCharacterController != null)
+                trackManager.humanCharacterController.currentLife = trackManager.humanCharacterController.maxLife;
         }
 
         currentModifier.OnRunStart(this);
@@ -322,7 +323,8 @@ public class GameState : AState
     public void ResetAll() {
         m_Finished = true;
         trackManager.StopMove(1);
-        trackManager.StopMove(2);
+        if (trackManager.humanCharacterController != null)
+            trackManager.StopMove(2);
 
         // Reseting the global blinking value. Can happen if game unexpectly exited while still blinking
         Shader.SetGlobalFloat("_BlinkingValue", 0.0f);
@@ -335,7 +337,8 @@ public class GameState : AState
 	{
 		m_Finished = true;
 		trackManager.StopMove(1);
-        trackManager.StopMove(2);
+        if (trackManager.humanCharacterController != null)
+            trackManager.StopMove(2);
 
         // Reseting the global blinking value. Can happen if game unexpectly exited while still blinking
         Shader.SetGlobalFloat("_BlinkingValue", 0.0f);

@@ -154,7 +154,8 @@ public class TrackManager : MonoBehaviour
 	IEnumerator WaitToStart()
 	{
         AICharacterController.character.animator.Play(s_StartHash);
-        humanCharacterController.character.animator.Play(s_StartHash);
+        if (humanCharacterController != null)
+            humanCharacterController.character.animator.Play(s_StartHash);
         float length = -1;// k_CountdownToStartLength;
 		m_TimeToStart = length;
 
@@ -170,13 +171,16 @@ public class TrackManager : MonoBehaviour
 		{
             // Make invincible on rerun, to avoid problems if the character died in front of an obstacle
             AICharacterController.characterCollider.SetInvincible();
-            humanCharacterController.characterCollider.SetInvincible();
+            if (humanCharacterController != null)
+                humanCharacterController.characterCollider.SetInvincible();
 		}
 
         AICharacterController.StartRunning();
-        humanCharacterController.StartRunning();
+        if (humanCharacterController != null)
+            humanCharacterController.StartRunning();
 		StartMove(1);
-        StartMove(2);
+        if (humanCharacterController != null)
+            StartMove(2);
 	}
 
 	public void Begin()
@@ -214,22 +218,24 @@ public class TrackManager : MonoBehaviour
 
 
             // Human Char
+            if (humanCharacterController != null)
+            {
+                humanCharacterController.gameObject.SetActive(true);
 
-            humanCharacterController.gameObject.SetActive(true);
-
-            // Spawn the player
-            Character humanPlayer = Instantiate(CharacterDatabase.GetCharacter("Rubbish Raccoon"), Vector3.zero, Quaternion.identity);
-            humanPlayer.transform.SetParent(humanCharacterController.characterCollider.transform, false);
-            //Camera.main.transform.SetParent(humanCharacterController.transform, true);
+                // Spawn the player
+                Character humanPlayer = Instantiate(CharacterDatabase.GetCharacter("Rubbish Raccoon"), Vector3.zero, Quaternion.identity);
+                humanPlayer.transform.SetParent(humanCharacterController.characterCollider.transform, false);
+                //Camera.main.transform.SetParent(humanCharacterController.transform, true);
 
 
-            humanPlayer.SetupAccesory(PlayerData.instance.usedAccessory);
+                humanPlayer.SetupAccesory(PlayerData.instance.usedAccessory);
 
-            humanCharacterController.character = humanPlayer;
-            humanCharacterController.trackManager = this;
+                humanCharacterController.character = humanPlayer;
+                humanCharacterController.trackManager = this;
 
-            humanCharacterController.Init();
-            humanCharacterController.CheatInvincible(invincible);
+                humanCharacterController.Init();
+                humanCharacterController.CheatInvincible(invincible);
+            }
 
             m_CurrentThemeData = ThemeDatabase.GetThemeData(PlayerData.instance.themes[PlayerData.instance.usedTheme]);
 			m_CurrentZone = 0;
@@ -247,9 +253,12 @@ public class TrackManager : MonoBehaviour
             AICharacterController.coins = 0;
             AICharacterController.premium = 0;
 
-            humanCharacterController.gameObject.SetActive(true);
-            humanCharacterController.coins = 0;
-            humanCharacterController.premium = 0;
+            if (humanCharacterController != null)
+            {
+                humanCharacterController.gameObject.SetActive(true);
+                humanCharacterController.coins = 0;
+                humanCharacterController.premium = 0;
+            }
 
             m_Score = 0;
 			m_ScoreAccum = 0;
@@ -269,7 +278,8 @@ public class TrackManager : MonoBehaviour
         }
 
         AICharacterController.Begin();
-        humanCharacterController.Begin();
+        if (humanCharacterController != null)
+            humanCharacterController.Begin();
 		StartCoroutine(WaitToStart());
 	}
 
@@ -289,18 +299,23 @@ public class TrackManager : MonoBehaviour
 		m_PastSegments.Clear();
 
         AICharacterController.End();
-        humanCharacterController.End();
+        if (humanCharacterController != null)
+            humanCharacterController.End();
 
 		gameObject.SetActive(false);
 		Destroy(AICharacterController.character.gameObject);
         AICharacterController.character = null;
-        Destroy(humanCharacterController.character.gameObject);
-        humanCharacterController.character = null;
+        if (humanCharacterController != null)
+        {
+            Destroy(humanCharacterController.character.gameObject);
+            humanCharacterController.character = null;
+        }
 
         Camera.main.transform.SetParent(null);
 
         AICharacterController.gameObject.SetActive(false);
-        humanCharacterController.gameObject.SetActive(false);
+        if (humanCharacterController != null)
+            humanCharacterController.gameObject.SetActive(false);
 
 		for (int i = 0; i < parallaxRoot.childCount; ++i) 
 		{
@@ -370,7 +385,10 @@ public class TrackManager : MonoBehaviour
         Vector3 currentAICharPos;
         Quaternion currentAICharRot;
         Transform AICharTransform = AICharacterController.transform;
-        Transform humanCharTransform = humanCharacterController.transform;
+
+        Transform humanCharTransform = null;
+        if (humanCharacterController != null)
+            humanCharTransform = humanCharacterController.transform;
 
 
         m_Segments[0].GetPointAtInWorldUnit(m_CurrentSegmentDistance, out currentAICharPos, out currentAICharRot);
@@ -411,8 +429,11 @@ public class TrackManager : MonoBehaviour
 
         AICharTransform.rotation = currentAICharRot;
         AICharTransform.position = currentAICharPos;
-        humanCharTransform.rotation = currentAICharRot;
-        humanCharTransform.position = currentAICharPos;
+        if (humanCharTransform != null)
+        {
+            humanCharTransform.rotation = currentAICharRot;
+            humanCharTransform.position = currentAICharPos;
+        }
 
         if (parallaxRoot != null && currentTheme.cloudPrefabs.Length > 0)
         {

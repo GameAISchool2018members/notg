@@ -89,11 +89,11 @@ public class InputController : Agent {
 
     public void CoinCollided()
     {
-        AddReward(0.2f);
+        //AddReward(0.2f);
     }
 
     public void ObstacleCollided()
     {
-        AddReward(-1f);
+        AddReward(-2f);
     }
 }
