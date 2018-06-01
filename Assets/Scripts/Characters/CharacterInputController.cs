@@ -19,7 +19,7 @@ public class CharacterInputController : Agent
     public GameObject blobShadow;
     public RayPerception rayPerception;
     public float laneChangeSpeed = 1.0f;
-
+        
     public int maxLife = 3;
 
     public Consumable inventory;
@@ -130,10 +130,6 @@ public class CharacterInputController : Agent
         m_Audio = GetComponent<AudioSource>();
 
         m_ObstacleLayer = 1 << LayerMask.NameToLayer("Obstacle");
-
-
-        InitAi();
-
     }
 
     // Called at the beginning of a run or rerun
@@ -589,9 +585,10 @@ public class CharacterInputController : Agent
     #region AI stuff
 
 
-    private void InitAi()
+    public override void InitializeAgent()
     {
-        rayPerception = gameObject.AddComponent<RayPerception>();
+        base.InitializeAgent();
+        rayPerception = GetComponentInChildren<RayPerception>();
         //Brain characterBrain = FindObjectOfType<Brain>();
         //GiveBrain(characterBrain);
     }
@@ -599,11 +596,13 @@ public class CharacterInputController : Agent
     public override void CollectObservations()
     {
         // 6 DOF raycasts
-        const float rayLength = 30.0f;
+        const float rayLength = 12.0f;
         const float lowRayHeight = 0.3f;
         const float highRayHeight = 1.2f;
 
-        var angles = new float[] { 0f, 30f, 60f, 90f, 120f, 150f, 180f };
+        //var angles = new float[] { 0f, 30f, 60f, 90f, 120f, 150f, 180f };
+        float[] angles = { 20f, 60f, 90f, 120f, 160f };
+
         List<float> highPerceptions = rayPerception.Perceive(rayLength, angles, new string[] { "obstacle", "fish" }, lowRayHeight, 0f);
         List<float> lowPerceptions = rayPerception.Perceive(rayLength, angles, new string[] { "obstacle", "fish" }, highRayHeight, 0f);
 
@@ -630,7 +629,7 @@ public class CharacterInputController : Agent
 #endif
 
         //if (Mathf.Approximately(0f, GetReward())) {
-        AddReward(0.01f);
+        AddReward(0.1f);
         //}
 
         if (currentLife <= 0) {
@@ -651,7 +650,7 @@ public class CharacterInputController : Agent
     }
 
     public void ObstacleCollided() {
-        AddReward(-1f);
+        SetReward(-1f);
     }
 
     private void ResetFeatures()

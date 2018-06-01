@@ -8191,14 +8191,14 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   brainParameters:
-    vectorObservationSize: 56
+    vectorObservationSize: 40
     numStackedVectorObservations: 1
     vectorActionSize: 2
     cameraResolutions: []
     vectorActionDescriptions: []
     vectorActionSpaceType: 0
     vectorObservationSpaceType: 1
-  brainType: 2
+  brainType: 0
   CoreBrains: []
   instanceID: 0
 --- !u!1 &863210674
@@ -12324,10 +12324,9 @@ MonoBehaviour:
   m_GameObject: {fileID: 1144878495}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 82be8ab7a7c661d4484416b1870501c4, type: 3}
+  m_Script: {fileID: 11500000, guid: ccc8f327c9f6d43a3a023c2ed50674a9, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  reward: 0
 --- !u!1 &1151564601
 GameObject:
   m_ObjectHideFlags: 0
