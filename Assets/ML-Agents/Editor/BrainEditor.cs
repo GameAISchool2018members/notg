@@ -8,7 +8,7 @@ using System.Linq;
  This code is meant to modify the behavior of the inspector on Brain Components.
  Depending on the type of brain that is used, the available fields will be modified in the inspector accordingly.
 */
-[CustomEditor (typeof(Brain))]
+[CustomEditor (typeof(CharacterBrain))]
 public class BrainEditor : Editor
 {
     [SerializeField]

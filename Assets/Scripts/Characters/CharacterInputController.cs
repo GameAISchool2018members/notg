@@ -537,7 +537,7 @@ public class CharacterInputController : InputController
 
     public void ChangeLane(int direction)
     {
-        if (!trackManager.isMoving)
+        if (!trackManager.isAICharMoving)
             return;
         
         int targetLane = m_CurrentLane + direction;
