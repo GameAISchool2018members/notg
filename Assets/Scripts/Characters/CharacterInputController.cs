@@ -372,6 +372,12 @@ public class CharacterInputController : Agent
         }
     }
 
+    protected void FixedUpdate()
+    {
+        Vector3 verticalTargetPosition = m_TargetPosition;
+        characterCollider.transform.localPosition = Vector3.MoveTowards(characterCollider.transform.localPosition, verticalTargetPosition, laneChangeSpeed * Time.fixedDeltaTime);
+    }
+
     protected void Update()
     {
 
@@ -497,7 +503,7 @@ public class CharacterInputController : Agent
             }
         }
 
-        characterCollider.transform.localPosition = Vector3.MoveTowards(characterCollider.transform.localPosition, verticalTargetPosition, laneChangeSpeed * Time.deltaTime);
+
 
         // Put blob shadow under the character.
         RaycastHit hit;
@@ -679,7 +685,7 @@ public class CharacterInputController : Agent
     }
 
     public void CoinCollided() {
-        AddReward(0.2f);
+        //AddReward(0.2f);
     }
 
     public void ObstacleCollided() {
