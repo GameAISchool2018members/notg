@@ -26,7 +26,14 @@ public class CharacterInputController : Agent
 
     public int coins { get { return m_Coins; } set { m_Coins = value; } }
     public int premium { get { return m_Premium; } set { m_Premium = value; } }
-    public int currentLife { get { return m_CurrentLife; } set { m_CurrentLife = value; } }
+    public int currentLife
+    {
+        get { return m_CurrentLife; }
+        set
+        {
+            m_CurrentLife = value;
+        }
+    }
     public List<Consumable> consumables { get { return m_ActiveConsumables; } }
     public bool isJumping { get { return m_Jumping; } }
     public bool isSliding { get { return m_Sliding; } }
@@ -73,10 +80,10 @@ public class CharacterInputController : Agent
     protected const float k_ShadowGroundOffset = 0.01f;
     protected const float k_TrackSpeedToJumpAnimSpeedRatio = 0.6f;
     protected const float k_TrackSpeedToSlideAnimSpeedRatio = 0.9f;
-	public Dictionary<string,float> obstacleMapping;
-	public List<float> featureVector;
+    public Dictionary<string, float> obstacleMapping;
 
     private const int NumberOfFeatures = 12;
+    public float[] featureVector;
 
     protected void Awake()
 
@@ -85,14 +92,13 @@ public class CharacterInputController : Agent
         m_CurrentLife = 0;
         m_Sliding = false;
         m_SlideStart = 0.0f;
-		obstacleMapping = new Dictionary<string, float>();
-		obstacleMapping.Add ("Pickup(Clone)",0);
-		obstacleMapping.Add ("ObstacleBin(Clone)",1);
-		obstacleMapping.Add ("ObstacleWheelyBin(Clone)",1);
-		obstacleMapping.Add ("ObstacleRoadworksCone(Clone)",1);
-		featureVector = new List<float> ();
-        for (int i = 0; i < NumberOfFeatures; i++)
-            featureVector.Add(0f);
+        obstacleMapping = new Dictionary<string, float>();
+        obstacleMapping.Add("Pickup(Clone)", 0);
+        obstacleMapping.Add("ObstacleBin(Clone)", 1);
+        obstacleMapping.Add("ObstacleWheelyBin(Clone)", 1);
+        obstacleMapping.Add("ObstacleRoadworksCone(Clone)", 1);
+        featureVector = new float[NumberOfFeatures];
+        ResetFeatures();
     }
 
 #if !UNITY_STANDALONE
@@ -174,56 +180,69 @@ public class CharacterInputController : Agent
         }
     }
 
-	public List<float> getFeatureVector(){
-		return featureVector;
-	}
+    private const float RaycastLength = 30f;
 
-	public void calculateFeatureVector(){
- 		featureVector = new List<float> ();
+    public float CalculateNormalDistance(RaycastHit hit)
+    {
+        float distance = Vector3.Distance(hit.transform.position, transform.position);
+        //Debug.Log(hit.point + " Hit " + hit.collider.gameObject.name + " Distance " + hit.distance + " calculated distance " + distance);
+        if (hit.collider.gameObject.name.Equals("Pickup(Clone)")) return 1f;
 
-		RaycastHit hit;
 
-		Vector3 highRayStraight = new Vector3 (0, transform.position.y + 1.2f, transform.position.z);
-		Vector3 lowRayStraight = new Vector3 (0, transform.position.y + 0.6f, transform.position.z);
+        return (RaycastLength - distance) / RaycastLength;   // max - cur / max - min
+    }
 
-		Vector3 lowRayLeft = new Vector3 (-1, transform.position.y + 0.6f, transform.position.z);
-		Vector3 lowRayRight = new Vector3 (+1, transform.position.y + 0.6f, transform.position.z);
+    private void CalculateFeatureVector()
+    {
+        RaycastHit hit;
 
-		Vector3 HighRayLeft = new Vector3 (-1, transform.position.y + 1.2f, transform.position.z);
-		Vector3 HighRayRight = new Vector3 (+1, transform.position.y + 1.2f, transform.position.z);
+        float lowRayHeight = 0.3f;
+        float highRayHeight = 1.2f;
 
-		Vector3 ahead = transform.forward;
-		ahead = ahead.normalized;
-		float rayLength = 30.0f;
+        float leftWidth = -1.5f;
+        float centerWidth = 0f;
+        float rightWidth = 1.5f;
 
-		// IF NO RAY THEN USE 1
+        Vector3 lowRayStraight = new Vector3(centerWidth, transform.position.y + lowRayHeight, transform.position.z);
+        Vector3 lowRayLeft = new Vector3(leftWidth, transform.position.y + lowRayHeight, transform.position.z);
+        Vector3 lowRayRight = new Vector3(rightWidth, transform.position.y + lowRayHeight, transform.position.z);
 
-		// HIGH LEFT
-		if (Physics.Raycast (HighRayLeft, ahead, out hit, rayLength)) {
-			//print ("Left "+hit.transform.position);
-			//print ("Left High: " + obstacleMapping [hit.collider.gameObject.name]);
+        Vector3 highRayStraight = new Vector3(centerWidth, transform.position.y + highRayHeight, transform.position.z);
+        Vector3 HighRayLeft = new Vector3(leftWidth, transform.position.y + highRayHeight, transform.position.z);
+        Vector3 HighRayRight = new Vector3(rightWidth, transform.position.y + highRayHeight, transform.position.z);
 
-			float distance = Vector3.Distance (hit.transform.position, transform.position);
-			float normDist = (float) ((rayLength - distance) / rayLength - 0.1);   // max - cur / max - min
+        Vector3 ahead = transform.forward;
+        ahead = ahead.normalized;
+        float rayLength = 30.0f;
+
+        // IF NO RAY THEN USE 1
+
+        // HIGH LEFT
+        if (Physics.Raycast(HighRayLeft, ahead, out hit, rayLength))
+        {
+            //print ("Left "+hit.transform.position);
+            //print ("Left High: " + obstacleMapping [hit.collider.gameObject.name]);
+
             //if (hit.collider.gameObject.name.Equals("Pickup(Clone)"))
             //{
             //    featureVector.Add(0f);
             //} else {
             //    featureVector.Add(1f);
             //}
-            featureVector.Add(normDist);
-		} else {
-			//featureVector.Add (0.0f);
-			featureVector.Add (1.0f);
-		}
+            featureVector[0] = CalculateNormalDistance(hit);
+        }
+        else
+        {
+            //featureVector.Add (0.0f);
+            featureVector[0] = 1.0f;
+        }
 
-		// HIGH RIGHT
-		if(Physics.Raycast(HighRayRight, ahead, out hit, rayLength))
-		{
-			//print ("Right "+hit.transform.position);
-			//print ("Right High: "+ obstacleMapping[hit.collider.gameObject.name]);
-			float distance = Vector3.Distance (hit.transform.position, transform.position);
-			float normDist = (float) ((rayLength - distance) / rayLength - 0.1);   // max - cur / max - min
+        // HIGH RIGHT
+        if (Physics.Raycast(HighRayRight, ahead, out hit, rayLength))
+        {
+            //print ("Right "+hit.transform.position);
+            //print ("Right High: "+ obstacleMapping[hit.collider.gameObject.name]);
+
             //if (hit.collider.gameObject.name.Equals("Pickup(Clone)"))
             //{
             //    featureVector.Add(0f);
@@ -232,19 +251,20 @@ public class CharacterInputController : Agent
             //{
             //    featureVector.Add(1f);
             //}
-			featureVector.Add(normDist);
-		}else {
-			//featureVector.Add (0.0f);
-			featureVector.Add (1.0f);
-		}
+            featureVector[1] = CalculateNormalDistance(hit);
+        }
+        else
+        {
+            //featureVector.Add (0.0f);
+            featureVector[1] = 1.0f;
+        }
 
-		// LOW LEFT
-		if(Physics.Raycast(lowRayLeft, ahead, out hit, rayLength))
-		{
-			//print ("Left "+hit.transform.position);
-			//print ("Left low: "+ obstacleMapping[hit.collider.gameObject.name]);
-			float distance = Vector3.Distance (hit.transform.position, transform.position);
-			float normDist = (float) ((rayLength - distance) / rayLength - 0.1);   // max - cur / max - min
+        // LOW LEFT
+        if (Physics.Raycast(lowRayLeft, ahead, out hit, rayLength))
+        {
+            //print ("Left "+hit.transform.position);
+            //print ("Left low: "+ obstacleMapping[hit.collider.gameObject.name]);
+
             //if (hit.collider.gameObject.name.Equals("Pickup(Clone)"))
             //{
             //    featureVector.Add(0f);
@@ -253,20 +273,21 @@ public class CharacterInputController : Agent
             //{
             //    featureVector.Add(1f);
             //}
-			featureVector.Add(normDist);
-			//featureVector.Add (obstacleMapping [hit.collider.gameObject.name]);
-		}else {
-			//featureVector.Add (0.0f);
-			featureVector.Add (1.0f);
-		}
+            featureVector[2] = CalculateNormalDistance(hit);
+            //featureVector.Add (obstacleMapping [hit.collider.gameObject.name]);
+        }
+        else
+        {
+            //featureVector.Add (0.0f);
+            featureVector[2] = 1.0f;
+        }
 
-		// LOW RIGHT
-		if(Physics.Raycast(lowRayRight, ahead, out hit, rayLength))
-		{
-			//print ("Right "+hit.transform.position);
-			//print ("Right low: "+ obstacleMapping[hit.collider.gameObject.name]);
-			float distance = Vector3.Distance (hit.transform.position, transform.position);
-			float normDist = (float) ((rayLength - distance) / rayLength - 0.1);   // max - cur / max - min
+        // LOW RIGHT
+        if (Physics.Raycast(lowRayRight, ahead, out hit, rayLength))
+        {
+            //print ("Right "+hit.transform.position);
+            //print ("Right low: "+ obstacleMapping[hit.collider.gameObject.name]);
+
             //if (hit.collider.gameObject.name.Equals("Pickup(Clone)"))
             //{
             //    featureVector.Add(0f);
@@ -275,20 +296,21 @@ public class CharacterInputController : Agent
             //{
             //    featureVector.Add(1f);
             //}
-			featureVector.Add(normDist);
-			//featureVector.Add (obstacleMapping [hit.collider.gameObject.name]);
-		}else {
-			//featureVector.Add (0.0f);
-			featureVector.Add (1.0f);
-		}
+            featureVector[3] = CalculateNormalDistance(hit);
+            //featureVector.Add (obstacleMapping [hit.collider.gameObject.name]);
+        }
+        else
+        {
+            //featureVector.Add (0.0f);
+            featureVector[3] = 1.0f;
+        }
 
-		// HIGH STRAIGHT
-		if(Physics.Raycast(highRayStraight, ahead, out hit, rayLength))
-		{
-			//print ("heah "+hit.transform.position);
-			//print ("HIGH: "+ obstacleMapping[hit.collider.gameObject.name]);
-			float distance = Vector3.Distance (hit.transform.position, transform.position);
-			float normDist = (float) ((rayLength - distance) / rayLength - 0.1);   // max - cur / max - min
+        // HIGH STRAIGHT
+        if (Physics.Raycast(highRayStraight, ahead, out hit, rayLength))
+        {
+            //print ("heah "+hit.transform.position);
+            //print ("HIGH: "+ obstacleMapping[hit.collider.gameObject.name]);
+
             //if (hit.collider.gameObject.name.Equals("Pickup(Clone)"))
             //{
             //    featureVector.Add(0f);
@@ -297,20 +319,21 @@ public class CharacterInputController : Agent
             //{
             //    featureVector.Add(1f);
             //}
-			featureVector.Add(normDist);
-			//featureVector.Add (obstacleMapping [hit.collider.gameObject.name]);
-		}else {
-			//featureVector.Add (0.0f);
-			featureVector.Add (1.0f);
-		}
+            featureVector[4] = CalculateNormalDistance(hit);
+            //featureVector.Add (obstacleMapping [hit.collider.gameObject.name]);
+        }
+        else
+        {
+            //featureVector.Add (0.0f);
+            featureVector[4] = 1.0f;
+        }
 
-		// LOW STRAIGHT
-		if(Physics.Raycast(lowRayStraight, ahead, out hit, rayLength))
-		{
-			//print ("heah "+hit.transform.position);
-			//print ("LOW: "+ obstacleMapping[hit.collider.gameObject.name]);
-			float distance = Vector3.Distance (hit.transform.position, transform.position);
-			float normDist = (float) ((rayLength - distance) / rayLength - 0.1);  // max - cur / max - min
+        // LOW STRAIGHT
+        if (Physics.Raycast(lowRayStraight, ahead, out hit, rayLength))
+        {
+            //print ("heah "+hit.transform.position);
+            //print ("LOW: "+ obstacleMapping[hit.collider.gameObject.name]);
+
             //if (hit.collider.gameObject.name.Equals("Pickup(Clone)"))
             //{
             //    featureVector.Add(0f);
@@ -319,20 +342,22 @@ public class CharacterInputController : Agent
             //{
             //    featureVector.Add(1f);
             //}
-			featureVector.Add(normDist);
-			//featureVector.Add (obstacleMapping [hit.collider.gameObject.name]);
-		}else {
-			//featureVector.Add (0.0f);
-			featureVector.Add (1.0f);
-		}
-	}
-	
+            featureVector[5] = CalculateNormalDistance(hit);
+            //featureVector.Add (obstacleMapping [hit.collider.gameObject.name]);
+        }
+        else
+        {
+            //featureVector.Add (0.0f);
+            featureVector[5] = 1.0f;
+        }
+    }
+
     protected void Update()
     {
 
-		// OUR RAYCASTING START
-		calculateFeatureVector ();
-		// OUR RAYCASTING END
+        // OUR RAYCASTING START
+        //CalculateFeatureVector();
+        // OUR RAYCASTING END
 
 #if UNITY_EDITOR || UNITY_STANDALONE
         // Use key input in editor or standalone
@@ -456,7 +481,7 @@ public class CharacterInputController : Agent
 
         // Put blob shadow under the character.
         RaycastHit hit;
-        if(Physics.Raycast(characterCollider.transform.position + Vector3.up, Vector3.down, out hit, k_ShadowRaycastDistance, m_ObstacleLayer))
+        if (Physics.Raycast(characterCollider.transform.position + Vector3.up, Vector3.down, out hit, k_ShadowRaycastDistance, m_ObstacleLayer))
         {
             blobShadow.transform.position = hit.point + Vector3.up * k_ShadowGroundOffset;
         }
@@ -574,46 +599,65 @@ public class CharacterInputController : Agent
     public override void CollectObservations()
     {
         // 6 DOF raycasts
-        for (int i = 0; i < 6; i++)
-        {
-            AddVectorObs(featureVector[i]);
-        }
+        const float rayLength = 30.0f;
+        const float lowRayHeight = 0.3f;
+        const float highRayHeight = 1.2f;
+
+        var angles = new float[] { 0f, 30f, 60f, 90f, 120f, 150f, 180f };
+        List<float> highPerceptions = rayPerception.Perceive(rayLength, angles, new string[] { "obstacle", "fish" }, lowRayHeight, 0f);
+        List<float> lowPerceptions = rayPerception.Perceive(rayLength, angles, new string[] { "obstacle", "fish" }, highRayHeight, 0f);
+
+        AddVectorObs(highPerceptions);
+        AddVectorObs(lowPerceptions);
+        //for (int i = 0; i < 6; i++)
+        //{
+        //    AddVectorObs(featureVector[i]);
+        //}
     }
 
     public override void AgentAction(float[] vectorAction, string textAction)
     {
         int action = Mathf.FloorToInt(vectorAction[0]);
-
-        //switch(action){
-        //    case 0:
-        //        ChangeLane(-1);
-        //        break;
-        //    case 1:
-        //        ChangeLane(1);
-        //        break;
-        //}
+#if !UNITY_EDITOR
+        switch(action){
+            case 0:
+                ChangeLane(-1);
+                break;
+            case 1:
+                ChangeLane(1);
+                break;
+        }
+#endif
 
         //if (Mathf.Approximately(0f, GetReward())) {
-            AddReward(0.001f);
+        AddReward(0.01f);
         //}
 
         if (currentLife <= 0) {
+            Debug.Log("Im done");
             Done();
         }
     }
 
     public override void AgentReset()
     {
-        //GameManager.instance.SwitchState("GameOver");
+        //ResetFeatures();
+
+        ((GameState)GameManager.instance.FindState("Game")).ResetAll();
     }
 
     public void CoinCollected() {
-        AddReward(-1f);
+        AddReward(0.1f);
     }
 
     public void ObstacleCollided() {
         AddReward(-1f);
     }
 
-    #endregion
+    private void ResetFeatures()
+    {
+        for (int i = 0; i < NumberOfFeatures; i++)
+            featureVector[i] = 0f;
+    }
+#endregion
 }

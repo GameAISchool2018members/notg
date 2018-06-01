@@ -29,4 +29,8 @@ public abstract class Obstacle : MonoBehaviour
 			audioSource.Play();
 		}
 	}
+
+    public void Awake() {
+        tag = "obstacle";
+    }
 }

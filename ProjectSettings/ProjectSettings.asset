@@ -629,7 +629,7 @@ PlayerSettings:
   webGLUseWasm: 0
   webGLCompressionFormat: 1
   scriptingDefineSymbols:
-    1: DEBUG_ANALYTICS_STANDARD_EVENTS
+    1: DEBUG_ANALYTICS_STANDARD_EVENTS;ENABLE_TENSORFLOW
     4: UNITY_SOCIAL;UNITY_ADS;DEBUG_ANALYTICS_STANDARD_EVENTS
     7: UNITY_SOCIAL;DEBUG_ANALYTICS_STANDARD_EVENTS
   platformArchitecture:
@@ -735,7 +735,7 @@ PlayerSettings:
     UNet: 0
     Unity_Ads: 0
   facebookSdkVersion: 7.9.1
-  apiCompatibilityLevel: 2
+  apiCompatibilityLevel: 3
   cloudProjectId: 
   projectName: 
   organizationId: 

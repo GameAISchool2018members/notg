@@ -17,7 +17,7 @@ public class Pooler
 
 		for (int i = 0; i < initialSize; ++i)
 		{
-			GameObject obj = Object.Instantiate(original);
+            GameObject obj = SpawnCoin();
 			obj.SetActive(false);
             m_FreeInstances.Push(obj);
 		}
@@ -28,9 +28,15 @@ public class Pooler
 		return Get(Vector3.zero, Quaternion.identity);
 	}
 
+    private GameObject SpawnCoin() {
+        var newObject = Object.Instantiate(m_Original);
+        newObject.tag = "fish";
+        return newObject;
+    }
+
 	public GameObject Get(Vector3 pos, Quaternion quat)
 	{
-	    GameObject ret = m_FreeInstances.Count > 0 ? m_FreeInstances.Pop() : Object.Instantiate(m_Original);
+        GameObject ret = m_FreeInstances.Count > 0 ? m_FreeInstances.Pop() : SpawnCoin();
 
 		ret.SetActive(true);
 		ret.transform.position = pos;

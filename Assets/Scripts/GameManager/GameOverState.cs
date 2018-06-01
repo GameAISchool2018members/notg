@@ -62,8 +62,7 @@ public class GameOverState : AState
 
     public override void Tick()
     {
-        GoToLoadout();
-        
+        RunAgain();
     }
 
 	public void OpenLeaderboard()

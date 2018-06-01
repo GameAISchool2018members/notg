@@ -8191,14 +8191,14 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   brainParameters:
-    vectorObservationSize: 6
+    vectorObservationSize: 56
     numStackedVectorObservations: 1
     vectorActionSize: 2
     cameraResolutions: []
     vectorActionDescriptions: []
     vectorActionSpaceType: 0
     vectorObservationSpaceType: 1
-  brainType: 0
+  brainType: 2
   CoreBrains: []
   instanceID: 0
 --- !u!1 &863210674
@@ -10880,7 +10880,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 60260e45be2a94bafbf27a58dc23e107, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  maxSteps: 0
+  maxSteps: 20000
   trainingConfiguration:
     width: 1280
     height: 720
@@ -26193,7 +26193,7 @@ MonoBehaviour:
     maxStep: 0
     resetOnDone: 1
     onDemandDecision: 0
-    numberOfActionsBetweenDecisions: 1
+    numberOfActionsBetweenDecisions: 5
   trackManager: {fileID: 1958487560}
   character: {fileID: 0}
   characterCollider: {fileID: 1144878499}

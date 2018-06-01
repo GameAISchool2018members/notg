@@ -95,6 +95,7 @@ public class GameState : AState
         canvas.gameObject.SetActive(false);
 
         ClearPowerup();
+        trackManager.End();
     }
 
     public void StartGame()
@@ -161,7 +162,9 @@ public class GameState : AState
             chrCtrl.CleanConsumable();
             chrCtrl.character.animator.SetBool(s_DeadHash, true);
 			chrCtrl.characterCollider.koParticle.gameObject.SetActive(true);
-			StartCoroutine(WaitForGameOver());
+
+            //StartGame();
+			//StartCoroutine(WaitForGameOver());
         }
 
         // Consumable ticking & lifetime management
@@ -303,6 +306,17 @@ public class GameState : AState
         }
         else
             inventoryIcon.transform.parent.gameObject.SetActive(false);
+    }
+
+    public void ResetAll() {
+        m_Finished = true;
+        trackManager.StopMove();
+
+        // Reseting the global blinking value. Can happen if game unexpectly exited while still blinking
+        Shader.SetGlobalFloat("_BlinkingValue", 0.0f);
+
+        Exit(null);
+        Enter(null);
     }
 
 	IEnumerator WaitForGameOver()
