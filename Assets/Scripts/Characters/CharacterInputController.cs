@@ -339,23 +339,23 @@ public class CharacterInputController : InputController
 
 #if UNITY_EDITOR || UNITY_STANDALONE
         // Use key input in editor or standalone
-        if (Input.GetKeyDown(KeyCode.LeftArrow))
-        {
-            ChangeLane(-1);
-        }
-        else if (Input.GetKeyDown(KeyCode.RightArrow))
-        {
-            ChangeLane(1);
-        }
-        else if (Input.GetKeyDown(KeyCode.UpArrow) && isVerticalMovementEnabled)
-        {
-            Jump();
-        }
-        else if (Input.GetKeyDown(KeyCode.DownArrow) && isVerticalMovementEnabled)
-        {
-            if (!m_Sliding)
-                Slide();
-        }
+        //if (Input.GetKeyDown(KeyCode.LeftArrow))
+        //{
+        //    ChangeLane(-1);
+        //}
+        //else if (Input.GetKeyDown(KeyCode.RightArrow))
+        //{
+        //    ChangeLane(1);
+        //}
+        //else if (Input.GetKeyDown(KeyCode.UpArrow) && isVerticalMovementEnabled)
+        //{
+        //    Jump();
+        //}
+        //else if (Input.GetKeyDown(KeyCode.DownArrow) && isVerticalMovementEnabled)
+        //{
+        //    if (!m_Sliding)
+        //        Slide();
+        //}
 #else
         // Use touch input on mobile
         if (Input.touchCount == 1)
@@ -517,11 +517,29 @@ public class CharacterInputController : InputController
         }
     }
 
-    public void ChangeLane(int direction)
+    public void ChangeLaneDirectly(int lane)
     {
         if (!trackManager.isAICharMoving)
             return;
 
+        if (lane < 0 || lane > 2)
+            // Ignore, we are on the borders.
+            return;
+
+        if (lane == m_CurrentLane)
+            return;
+        
+        m_CurrentLane = lane;
+
+        m_TargetPosition = new Vector3((m_CurrentLane - 1) * trackManager.laneOffset, 0, 0);
+
+    }
+
+    public void ChangeLane(int direction)
+    {
+        if (!trackManager.isMoving)
+            return;
+        
         int targetLane = m_CurrentLane + direction;
 
         if (targetLane < 0 || targetLane > 2)
@@ -529,6 +547,7 @@ public class CharacterInputController : InputController
             return;
 
         m_CurrentLane = targetLane;
+
         m_TargetPosition = new Vector3((m_CurrentLane - 1) * trackManager.laneOffset, 0, 0);
     }
 
@@ -586,19 +605,19 @@ public class CharacterInputController : InputController
     public override void AgentAction(float[] vectorAction, string textAction)
     {
         int action = Mathf.FloorToInt(vectorAction[0]);
-#if !UNITY_EDITOR
+//#if !UNITY_EDITOR
         switch(action){
             case 0:
-                // Do nothing 
+                ChangeLaneDirectly(0);
                 break;
             case 1:
-                ChangeLane(-1);
+                ChangeLaneDirectly(1);
                 break;
             case 2:
-                ChangeLane(1);
+                ChangeLaneDirectly(2);
                 break;
         }
-#endif
+//#endif
 
         //if (Mathf.Approximately(0f, GetReward())) {
         //if (trackManager.score % 100 == 0){
