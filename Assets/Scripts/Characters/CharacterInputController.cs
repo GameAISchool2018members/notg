@@ -130,6 +130,30 @@ public class CharacterInputController : Agent
         m_Audio = GetComponent<AudioSource>();
 
         m_ObstacleLayer = 1 << LayerMask.NameToLayer("Obstacle");
+
+        lanes = new float[3];
+    }
+
+    private void UpdateLanes() {
+        switch (m_CurrentLane)
+        {
+            case 0:
+                lanes[0] = 1f;
+                lanes[1] = 0f;
+                lanes[2] = 0f;
+                break;
+            case 1:
+                lanes[0] = 0f;
+                lanes[1] = 1f;
+                lanes[2] = 0f;
+                break;
+            case 2:
+                lanes[0] = 0f;
+                lanes[1] = 0f;
+                lanes[2] = 1f;
+                break;
+        }
+                
     }
 
     // Called at the beginning of a run or rerun
@@ -593,8 +617,13 @@ public class CharacterInputController : Agent
         //GiveBrain(characterBrain);
     }
 
+    private float[] lanes;
+
     public override void CollectObservations()
     {
+        UpdateLanes();
+        AddVectorObs(lanes);
+
         // 6 DOF raycasts
         const float rayLength = 30.0f;
         const float lowRayHeight = 0.1f;
@@ -602,17 +631,20 @@ public class CharacterInputController : Agent
 
         var angles = new float[] { 30f, 60f, 75f, 90f, 105f, 120f, 150f };
 
-        List<float> highPerceptions = rayPerception.Perceive(rayLength, angles, new string[] { "obstacle", "fish" }, lowRayHeight, 0f);
-        List<float> lowPerceptions = rayPerception.Perceive(rayLength, angles, new string[] { "obstacle", "fish" }, highRayHeight, 0f);
+        var tags = new string[] { "obstacle" };
+        List<float> highPerceptions = rayPerception.Perceive(rayLength, angles, tags, lowRayHeight, 0f);
+        List<float> lowPerceptions = rayPerception.Perceive(rayLength, angles, tags, highRayHeight, 0f);
 
         AddVectorObs(highPerceptions);
         AddVectorObs(lowPerceptions);
+
         //for (int i = 0; i < 6; i++)
         //{
         //    AddVectorObs(featureVector[i]);
         //}
     }
-
+    // TODO add lane info 1-hot
+    // TODO tensorboard, maybe inrease enthropy reg
     public override void AgentAction(float[] vectorAction, string textAction)
     {
         int action = Mathf.FloorToInt(vectorAction[0]);
@@ -628,7 +660,9 @@ public class CharacterInputController : Agent
 #endif
 
         //if (Mathf.Approximately(0f, GetReward())) {
-        AddReward(0.1f);
+        //if (trackManager.score % 100 == 0){
+        AddReward(0.01f);
+    //}
         //}
 
         if (currentLife <= 0) {
@@ -645,7 +679,7 @@ public class CharacterInputController : Agent
     }
 
     public void CoinCollided() {
-        AddReward(0.1f);
+        AddReward(0.2f);
     }
 
     public void ObstacleCollided() {

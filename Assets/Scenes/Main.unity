@@ -8191,14 +8191,14 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   brainParameters:
-    vectorObservationSize: 56
+    vectorObservationSize: 45
     numStackedVectorObservations: 1
     vectorActionSize: 2
     cameraResolutions: []
     vectorActionDescriptions: []
     vectorActionSpaceType: 0
     vectorObservationSpaceType: 1
-  brainType: 2
+  brainType: 0
   CoreBrains: []
   instanceID: 0
 --- !u!1 &863210674
@@ -26198,7 +26198,7 @@ MonoBehaviour:
   blobShadow: {fileID: 184212906}
   rayPerception: {fileID: 0}
   laneChangeSpeed: 14
-  maxLife: 3
+  maxLife: 1
   inventory: {fileID: 0}
   isVerticalMovementEnabled: 0
   jumpLength: 6
