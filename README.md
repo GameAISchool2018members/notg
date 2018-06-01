@@ -8,7 +8,10 @@ We stripped the game from moving obstacles like rats and dogs, as well as 3 line
 * Move Left
 * Do Nothing
 
+Training was done with 500.000 iterations.
+
 ## [Video of the training process](https://youtu.be/JshzT8S9AKk)
+## [Video of the AI play after training](https://youtu.be/9g5YMTVhbQw)
 
 ## Sample learning output on early learning phase
 ```
