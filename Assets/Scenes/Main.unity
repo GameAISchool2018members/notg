@@ -8193,7 +8193,7 @@ MonoBehaviour:
   brainParameters:
     vectorObservationSize: 57
     numStackedVectorObservations: 1
-    vectorActionSize: 2
+    vectorActionSize: 3
     cameraResolutions: []
     vectorActionDescriptions: []
     vectorActionSpaceType: 0

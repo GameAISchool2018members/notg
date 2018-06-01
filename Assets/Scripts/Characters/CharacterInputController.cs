@@ -659,9 +659,12 @@ public class CharacterInputController : Agent
 #if !UNITY_EDITOR
         switch(action){
             case 0:
-                ChangeLane(-1);
+                // Do nothing 
                 break;
             case 1:
+                ChangeLane(-1);
+                break;
+            case 2:
                 ChangeLane(1);
                 break;
         }
