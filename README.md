@@ -1,5 +1,11 @@
 # NotG
 
+## Who we are?
+
+![Team - Something Epic](https://github.com/GameAISchool2018members/notg/blob/master/Img/Team%20(SomethingEpic).JPG)
+We are a bunch of 1st Internation school on AI that took place in Chania, Greece.
+We are from Italy, Cyprus, Ukraine, Finland and Serbia.
+
 Simple machine learning agent
 
 To speed up the process we took a simple runner game from Unity Asset Store - [Endless Runner - Sample Game](https://assetstore.unity.com/packages/essentials/tutorial-projects/endless-runner-sample-game-87901).
