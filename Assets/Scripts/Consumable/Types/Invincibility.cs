@@ -23,20 +23,20 @@ public class Invincibility : Consumable
 		return 5;
 	}
 
-	public override void Tick(CharacterInputController c)
+	public override void Tick(InputController c)
     {
         base.Tick(c);
 
         c.characterCollider.SetInvincibleExplicit(true);
     }
 
-    public override void Started(CharacterInputController c)
+    public override void Started(InputController c)
     {
         base.Started(c);
         c.characterCollider.SetInvincible(duration);
     }
 
-    public override void Ended(CharacterInputController c)
+    public override void Ended(InputController c)
     {
         base.Ended(c);
         c.characterCollider.SetInvincibleExplicit(false);

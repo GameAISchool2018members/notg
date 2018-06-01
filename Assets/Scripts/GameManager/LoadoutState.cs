@@ -124,7 +124,7 @@ public class LoadoutState : AState
 				PlayerData.instance.Consume(m_PowerupToUse);
                 Consumable inv = Instantiate(ConsumableDatabase.GetConsumbale(m_PowerupToUse));
                 inv.gameObject.SetActive(false);
-                gs.trackManager.characterController.inventory = inv;
+                gs.trackManager.AICharacterController.inventory = inv;
             }
         }
     }

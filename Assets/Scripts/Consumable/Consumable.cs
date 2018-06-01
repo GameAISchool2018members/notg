@@ -44,12 +44,12 @@ public abstract class Consumable : MonoBehaviour
     }
 
     //override this to do test to make a consumable not usable (e.g. used by the ExtraLife to avoid using it when at full health)
-    public virtual bool CanBeUsed(CharacterInputController c)
+    public virtual bool CanBeUsed(InputController c)
     {
         return true;
     }
 
-    public virtual void Started(CharacterInputController c)
+    public virtual void Started(InputController c)
     {
         m_SinceStart = 0;
 
@@ -70,7 +70,7 @@ public abstract class Consumable : MonoBehaviour
         }
 	}
 
-    public virtual void Tick(CharacterInputController c)
+    public virtual void Tick(InputController c)
     {
         // By default do nothing, override to do per frame manipulation
         m_SinceStart += Time.deltaTime;
@@ -81,7 +81,7 @@ public abstract class Consumable : MonoBehaviour
         }
     }
 
-    public virtual void Ended(CharacterInputController c)
+    public virtual void Ended(InputController c)
     {
         if (m_ParticleSpawned != null)
         {

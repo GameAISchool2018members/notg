@@ -38,7 +38,7 @@ public class LimitedLengthRun : Modifier
 	{
 		if(state.trackManager.worldDistance >= distance)
 		{
-			state.trackManager.characterController.currentLife = 0;
+			state.trackManager.AICharacterController.currentLife = 0;
 		}
 	}
 
@@ -81,8 +81,8 @@ public class SingleLifeRun : Modifier
 {
 	public override void OnRunTick(GameState state)
 	{
-		if (state.trackManager.characterController.currentLife > 1)
-			state.trackManager.characterController.currentLife = 1;
+		if (state.trackManager.AICharacterController.currentLife > 1)
+			state.trackManager.AICharacterController.currentLife = 1;
 	}
 
 

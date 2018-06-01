@@ -23,7 +23,7 @@ public class Score2Multiplier : Consumable
 		return 0;
 	}
 
-	public override void Started(CharacterInputController c)
+	public override void Started(InputController c)
     {
         base.Started(c);
 
@@ -32,7 +32,7 @@ public class Score2Multiplier : Consumable
         c.trackManager.modifyMultiply += MultiplyModify;
     }
 
-    public override void Ended(CharacterInputController c)
+    public override void Ended(InputController c)
     {
         base.Ended(c);
 

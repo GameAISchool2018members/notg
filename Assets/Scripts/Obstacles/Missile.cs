@@ -54,7 +54,7 @@ public class Missile : Obstacle
 
 	public void Update()
 	{
-		if (m_OwnSegement.manager.isMoving)
+		if (m_OwnSegement.manager.isAICharMoving)
 		{
 			if (m_IsMoving)
 			{

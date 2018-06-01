@@ -61,7 +61,9 @@ public class GameState : AState
 	protected Image[] m_LifeHearts;
 
     protected RectTransform m_CountdownRectTransform;
-    protected bool m_WasMoving;
+    protected bool m_WasAICharMoving;
+    protected bool m_WasHumanCharMoving;
+
 
     protected bool m_AdsInitialised = false;
     protected bool m_GameoverSelectionDone = false;
@@ -109,7 +111,8 @@ public class GameState : AState
         if (!trackManager.isRerun)
         {
             m_TimeSinceStart = 0;
-            trackManager.characterController.currentLife = trackManager.characterController.maxLife;
+            trackManager.AICharacterController.currentLife = trackManager.AICharacterController.maxLife;
+            trackManager.humanCharacterController.currentLife = trackManager.humanCharacterController.maxLife;
         }
 
         currentModifier.OnRunStart(this);
@@ -152,7 +155,7 @@ public class GameState : AState
             return;
         }
 
-        CharacterInputController chrCtrl = trackManager.characterController;
+        CharacterInputController chrCtrl = trackManager.AICharacterController;
 
         m_TimeSinceStart += Time.deltaTime;
 
@@ -204,7 +207,7 @@ public class GameState : AState
 
         for (int i = 0; i < toRemove.Count; ++i)
         {
-            toRemove[i].Ended(trackManager.characterController);
+            toRemove[i].Ended(trackManager.AICharacterController);
 
             Destroy(toRemove[i].gameObject);
             if(toRemoveIcon[i] != null)
@@ -236,22 +239,30 @@ public class GameState : AState
 		pauseButton.gameObject.SetActive(false);
         pauseMenu.gameObject.SetActive (true);
 		wholeUI.gameObject.SetActive(false);
-		m_WasMoving = trackManager.isMoving;
-		trackManager.StopMove();
-	}
+		m_WasAICharMoving = trackManager.isAICharMoving;
+        m_WasHumanCharMoving = trackManager.isHumanCharMoving;
+		trackManager.StopMove(1);
+        trackManager.StopMove(2);
 
-	public void Resume()
+    }
+
+    public void Resume()
 	{
 		Time.timeScale = 1.0f;
 		pauseButton.gameObject.SetActive(true);
 		pauseMenu.gameObject.SetActive (false);
 		wholeUI.gameObject.SetActive(true);
-		if (m_WasMoving)
+		if (m_WasAICharMoving)
 		{
-			trackManager.StartMove(false);
+			trackManager.StartMove(1, false);
 		}
+        if (m_WasHumanCharMoving)
+        {
+            trackManager.StartMove(2, false);
+        }
 
-		AudioListener.pause = false;
+
+        AudioListener.pause = false;
 	}
 
 	public void QuitToLoadout()
@@ -266,13 +277,13 @@ public class GameState : AState
 
     protected void UpdateUI()
     {
-        coinText.text = trackManager.characterController.coins.ToString();
-        premiumText.text = trackManager.characterController.premium.ToString();
+        coinText.text = trackManager.AICharacterController.coins.ToString();
+        premiumText.text = trackManager.AICharacterController.premium.ToString();
 
 		for (int i = 0; i < 3; ++i)
 		{
 
-			if(trackManager.characterController.currentLife > i)
+			if(trackManager.AICharacterController.currentLife > i)
 			{
 				m_LifeHearts[i].color = Color.white;
 			}
@@ -299,10 +310,10 @@ public class GameState : AState
 		}
 
         // Consumable
-        if (trackManager.characterController.inventory != null)
+        if (trackManager.AICharacterController.inventory != null)
         {
             inventoryIcon.transform.parent.gameObject.SetActive(true);
-            inventoryIcon.sprite = trackManager.characterController.inventory.icon;
+            inventoryIcon.sprite = trackManager.AICharacterController.inventory.icon;
         }
         else
             inventoryIcon.transform.parent.gameObject.SetActive(false);
@@ -310,7 +321,8 @@ public class GameState : AState
 
     public void ResetAll() {
         m_Finished = true;
-        trackManager.StopMove();
+        trackManager.StopMove(1);
+        trackManager.StopMove(2);
 
         // Reseting the global blinking value. Can happen if game unexpectly exited while still blinking
         Shader.SetGlobalFloat("_BlinkingValue", 0.0f);
@@ -322,7 +334,8 @@ public class GameState : AState
 	IEnumerator WaitForGameOver()
 	{
 		m_Finished = true;
-		trackManager.StopMove();
+		trackManager.StopMove(1);
+        trackManager.StopMove(2);
 
         // Reseting the global blinking value. Can happen if game unexpectly exited while still blinking
         Shader.SetGlobalFloat("_BlinkingValue", 0.0f);
@@ -345,7 +358,7 @@ public class GameState : AState
                 Destroy(m_PowerupIcons[i].gameObject);
         }
 
-        trackManager.characterController.powerupSource.Stop();
+        trackManager.AICharacterController.powerupSource.Stop();
 
         m_PowerupIcons.Clear();
     }
@@ -384,7 +397,7 @@ public class GameState : AState
 
     public void SecondWind()
     {
-        trackManager.characterController.currentLife = 1;
+        trackManager.AICharacterController.currentLife = 1;
         trackManager.isRerun = true;
         StartGame();
     }

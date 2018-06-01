@@ -4,7 +4,7 @@ using System.Collections.Generic;
 /// <summary>
 /// Handle everything related to controlling the character. Interact with both the Character (visual, animation) and CharacterCollider
 /// </summary>
-public class CharacterInputController : Agent
+public class CharacterInputController : InputController
 {
     static int s_DeadHash = Animator.StringToHash("Dead");
     static int s_RunStartHash = Animator.StringToHash("runStart");
@@ -13,28 +13,14 @@ public class CharacterInputController : Agent
     static int s_JumpingSpeedHash = Animator.StringToHash("JumpSpeed");
     static int s_SlidingHash = Animator.StringToHash("Sliding");
 
-    public TrackManager trackManager;
-    public Character character;
-    public CharacterCollider characterCollider;
+
     public GameObject blobShadow;
     public RayPerception rayPerception;
     public float laneChangeSpeed = 1.0f;
         
-    public int maxLife = 3;
 
     public Consumable inventory;
 
-    public int coins { get { return m_Coins; } set { m_Coins = value; } }
-    public int premium { get { return m_Premium; } set { m_Premium = value; } }
-    public int currentLife
-    {
-        get { return m_CurrentLife; }
-        set
-        {
-            m_CurrentLife = value;
-        }
-    }
-    public List<Consumable> consumables { get { return m_ActiveConsumables; } }
     public bool isJumping { get { return m_Jumping; } }
     public bool isSliding { get { return m_Sliding; } }
 
@@ -48,18 +34,11 @@ public class CharacterInputController : Agent
 
     [Header("Sounds")]
     public AudioClip slideSound;
-    public AudioClip powerUpUseSound;
-    public AudioSource powerupSource;
 
-    protected int m_Coins;
-    protected int m_Premium;
-    protected int m_CurrentLife;
 
-    protected List<Consumable> m_ActiveConsumables = new List<Consumable>();
 
     protected int m_ObstacleLayer;
 
-    protected bool m_IsInvincible;
 
     protected float m_JumpStart;
     protected bool m_Jumping;
@@ -106,16 +85,6 @@ public class CharacterInputController : Agent
 	protected bool m_IsSwiping = false;
 #endif
 
-    // Cheating functions, use for testing
-    public void CheatInvincible(bool invincible)
-    {
-        m_IsInvincible = invincible;
-    }
-
-    public bool IsCheatInvincible()
-    {
-        return m_IsInvincible;
-    }
 
     public void Init()
     {
@@ -182,23 +151,6 @@ public class CharacterInputController : Agent
         m_ActiveConsumables.Clear();
     }
 
-    public void StartRunning()
-    {
-        if (character.animator)
-        {
-            character.animator.Play(s_RunStartHash);
-            character.animator.SetBool(s_MovingHash, true);
-        }
-    }
-
-    public void StopMoving()
-    {
-        trackManager.StopMove();
-        if (character.animator)
-        {
-            character.animator.SetBool(s_MovingHash, false);
-        }
-    }
 
     private const float RaycastLength = 30f;
 
@@ -459,7 +411,7 @@ public class CharacterInputController : Agent
         {
             // Slide time isn't constant but the slide length is (even if slightly modified by speed, to slide slightly further when faster).
             // This is for gameplay reason, we don't want the character to drasticly slide farther when at max speed.
-            float correctSlideLength = slideLength * (1.0f + trackManager.speedRatio);
+            float correctSlideLength = slideLength * (1.0f + trackManager.AICharSpeedRatio);
             float ratio = (trackManager.worldDistance - m_SlideStart) / correctSlideLength;
             if (ratio >= 1.0f)
             {
@@ -470,11 +422,11 @@ public class CharacterInputController : Agent
 
         if (m_Jumping)
         {
-            if (trackManager.isMoving)
+            if (trackManager.isAICharMoving)
             {
                 // Same as with the sliding, we want a fixed jump LENGTH not fixed jump TIME. Also, just as with sliding,
                 // we slightly modify length with speed to make it more playable.
-                float correctJumpLength = jumpLength * (1.0f + trackManager.speedRatio);
+                float correctJumpLength = jumpLength * (1.0f + trackManager.AICharSpeedRatio);
                 float ratio = (trackManager.worldDistance - m_JumpStart) / correctJumpLength;
                 if (ratio >= 1.0f)
                 {
@@ -520,9 +472,9 @@ public class CharacterInputController : Agent
             if (m_Sliding)
                 StopSliding();
 
-            float correctJumpLength = jumpLength * (1.0f + trackManager.speedRatio);
+            float correctJumpLength = jumpLength * (1.0f + trackManager.AICharSpeedRatio);
             m_JumpStart = trackManager.worldDistance;
-            float animSpeed = k_TrackSpeedToJumpAnimSpeedRatio * (trackManager.speed / correctJumpLength);
+            float animSpeed = k_TrackSpeedToJumpAnimSpeedRatio * (trackManager.AICharSpeed / correctJumpLength);
 
             character.animator.SetFloat(s_JumpingSpeedHash, animSpeed);
             character.animator.SetBool(s_JumpingHash, true);
@@ -535,9 +487,9 @@ public class CharacterInputController : Agent
     {
         if (!m_Sliding && !m_Jumping)
         {
-            float correctSlideLength = slideLength * (1.0f + trackManager.speedRatio);
+            float correctSlideLength = slideLength * (1.0f + trackManager.AICharSpeedRatio);
             m_SlideStart = trackManager.worldDistance;
-            float animSpeed = k_TrackSpeedToJumpAnimSpeedRatio * (trackManager.speed / correctSlideLength);
+            float animSpeed = k_TrackSpeedToJumpAnimSpeedRatio * (trackManager.AICharSpeed / correctSlideLength);
 
             character.animator.SetFloat(s_JumpingSpeedHash, animSpeed);
             character.animator.SetBool(s_SlidingHash, true);
@@ -561,7 +513,7 @@ public class CharacterInputController : Agent
 
     public void ChangeLane(int direction)
     {
-        if (!trackManager.isMoving)
+        if (!trackManager.isAICharMoving)
             return;
 
         int targetLane = m_CurrentLane + direction;
@@ -583,28 +535,6 @@ public class CharacterInputController : Agent
         }
     }
 
-    public void UseConsumable(Consumable c)
-    {
-        characterCollider.audio.PlayOneShot(powerUpUseSound);
-
-        for (int i = 0; i < m_ActiveConsumables.Count; ++i)
-        {
-            if (m_ActiveConsumables[i].GetType() == c.GetType())
-            {
-                // If we already have an active consumable of that type, we just reset the time
-                m_ActiveConsumables[i].ResetTime();
-                Destroy(c.gameObject);
-                return;
-            }
-        }
-
-        // If we didn't had one, activate that one 
-        c.transform.SetParent(transform, false);
-        c.gameObject.SetActive(false);
-
-        m_ActiveConsumables.Add(c);
-        c.Started(this);
-    }
 
     #region AI stuff
 
@@ -678,13 +608,7 @@ public class CharacterInputController : Agent
         ((GameState)GameManager.instance.FindState("Game")).ResetAll();
     }
 
-    public void CoinCollided() {
-        AddReward(0.2f);
-    }
-
-    public void ObstacleCollided() {
-        AddReward(-1f);
-    }
+    
 
     private void ResetFeatures()
     {

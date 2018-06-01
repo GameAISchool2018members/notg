@@ -137,10 +137,10 @@ public class PickupMission : MissionBase
 
     public override void Update(TrackManager manager)
     {
-        int coins = manager.characterController.coins - previousCoinAmount;
+        int coins = manager.AICharacterController.coins - previousCoinAmount;
         progress += coins;
 
-        previousCoinAmount = manager.characterController.coins;
+        previousCoinAmount = manager.AICharacterController.coins;
     }
 }
 
@@ -180,10 +180,10 @@ public class BarrierJumpMission : MissionBase
 
     public override void Update(TrackManager manager)
     {
-        if(manager.characterController.isJumping)
+        if(manager.AICharacterController.isJumping)
         {
-            Vector3 boxSize = manager.characterController.characterCollider.collider.size + k_CharacterColliderSizeOffset;
-            Vector3 boxCenter = manager.characterController.transform.position - Vector3.up * boxSize.y * 0.5f;
+            Vector3 boxSize = manager.AICharacterController.characterCollider.collider.size + k_CharacterColliderSizeOffset;
+            Vector3 boxCenter = manager.AICharacterController.transform.position - Vector3.up * boxSize.y * 0.5f;
 
             int count = Physics.OverlapBoxNonAlloc(boxCenter, boxSize * 0.5f, m_Hits);
 
@@ -236,7 +236,7 @@ public class SlidingMission : MissionBase
 
     public override void Update(TrackManager manager)
     {
-        if(manager.characterController.isSliding)
+        if(manager.AICharacterController.isSliding)
         {
             float dist = manager.worldDistance - m_PreviousWorldDist;
             progress += dist;

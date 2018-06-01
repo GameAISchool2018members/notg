@@ -25,7 +25,7 @@ public class CharacterCollider : MonoBehaviour
         public float worldDistance;
     }
 
-    public CharacterInputController controller;
+    public InputController controller;
 
 	public ParticleSystem koParticle;
 

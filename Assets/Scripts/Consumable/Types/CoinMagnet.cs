@@ -28,7 +28,7 @@ public class CoinMagnet : Consumable
 
 	protected Collider[] returnColls = new Collider[20];
 
-	public override void Tick(CharacterInputController c)
+	public override void Tick(InputController c)
     {
         base.Tick(c);
 

@@ -99,8 +99,8 @@ public class GameOverState : AState
 			return;
 
 		// -- give coins gathered
-		PlayerData.instance.coins += trackManager.characterController.coins;
-		PlayerData.instance.premium += trackManager.characterController.premium;
+		PlayerData.instance.coins += trackManager.AICharacterController.coins;
+		PlayerData.instance.premium += trackManager.AICharacterController.premium;
 
 		PlayerData.instance.Save();
 
@@ -155,7 +155,7 @@ public class GameOverState : AState
 
         PlayerData.instance.InsertScore(trackManager.score, miniLeaderboard.playerEntry.inputName.text );
 
-        CharacterCollider.DeathEvent de = trackManager.characterController.characterCollider.deathData;
+        CharacterCollider.DeathEvent de = trackManager.AICharacterController.characterCollider.deathData;
         //register data to analytics
 #if UNITY_ANALYTICS
         AnalyticsEvent.GameOver(null, new Dictionary<string, object> {

@@ -10,7 +10,9 @@ public class RestartRunning : StateMachineBehaviour
         if (animator.GetBool(s_DeadHash))
             return; 
 
-        TrackManager.instance.StartMove();
+        TrackManager.instance.StartMove(1);
+        TrackManager.instance.StartMove(2);
+
     }
 
 }

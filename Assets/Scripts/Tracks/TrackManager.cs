@@ -33,7 +33,8 @@ public class TrackManager : MonoBehaviour
 	public MultiplierModifier modifyMultiply;
 
 	[Header("Character & Movements")]
-	public CharacterInputController characterController;
+	public CharacterInputController AICharacterController;
+    public SecondCharacterInputController humanCharacterController;
 	public float minSpeed = 5.0f;
 	public float maxSpeed = 10.0f;
 	public int speedStep = 4;
@@ -59,15 +60,18 @@ public class TrackManager : MonoBehaviour
 	public int score { get { return m_Score; } }
 	public int multiplier {  get { return m_Multiplier; } }
 	public float worldDistance {  get { return m_TotalWorldDistance; } }
-	public float speed {  get { return m_Speed; } }
-	public float speedRatio {  get { return (m_Speed - minSpeed) / (maxSpeed - minSpeed); } }
+	public float AICharSpeed {  get { return m_AICharSpeed; } }
+	public float AICharSpeedRatio {  get { return (m_AICharSpeed - minSpeed) / (maxSpeed - minSpeed); } }
+    public float humanCharSpeed { get { return m_AICharSpeed; } }
+    public float humanCharSpeedRatio { get { return (m_AICharSpeed - minSpeed) / (maxSpeed - minSpeed); } }
 
-	public TrackSegment currentSegment { get { return m_Segments[0]; } }
+    public TrackSegment currentSegment { get { return m_Segments[0]; } }
 	public List<TrackSegment> segments { get { return m_Segments; } }
 	public ThemeData currentTheme { get { return m_CurrentThemeData; } }
 
-	public bool isMoving {  get { return m_IsMoving; } }
-	public bool isRerun { get { return m_Rerun; } set { m_Rerun = value; } }
+	public bool isAICharMoving {  get { return m_IsAICharMoving; } }
+    public bool isHumanCharMoving { get { return m_IsAICharMoving; } }
+    public bool isRerun { get { return m_Rerun; } set { m_Rerun = value; } }
 
 	protected float m_TimeToStart = -1.0f;
 
@@ -77,8 +81,12 @@ public class TrackManager : MonoBehaviour
 
 	protected float m_CurrentSegmentDistance;
 	protected float m_TotalWorldDistance;
-	protected bool m_IsMoving;
-	protected float m_Speed;
+    protected float m_CurrentHumanCharSegmentDistance;
+    protected float m_TotalHumanCharWorldDistance;
+    protected bool m_IsAICharMoving;
+	protected float m_AICharSpeed;
+    protected bool m_IsHumanCharMoving;
+    protected float m_HumanCharSpeed;
 
     protected float m_TimeSincePowerup;     // The higher it goes, the higher the chance of spawning one
 	protected float m_TimeSinceLastPremium;
@@ -117,21 +125,36 @@ public class TrackManager : MonoBehaviour
         Coin.coinPool = new Pooler(currentTheme.collectiblePrefab, k_StartingCoinPoolSize);
     }
 
-	public void StartMove(bool isRestart = true)
+    // charIndex = 1 (AI)
+    // charIndex = 2 (Human)
+	public void StartMove(int charIndex, bool isRestart = true)
 	{
-		m_IsMoving = true;
-		if(isRestart)
-			m_Speed = minSpeed;
+        if (charIndex == 1)
+        {
+            m_IsAICharMoving = true;
+            if (isRestart)
+                m_AICharSpeed = minSpeed;
+        }
+        else
+        {
+            m_IsHumanCharMoving = true;
+            if (isRestart)
+                m_HumanCharSpeed = minSpeed;
+        }
 	}
 
-	public void StopMove()
+	public void StopMove(int charIndex)
 	{
-		m_IsMoving = false;
+        if (charIndex == 1)
+            m_IsAICharMoving = false;
+        else
+            m_IsHumanCharMoving = false;
 	}
 
 	IEnumerator WaitToStart()
 	{
-		characterController.character.animator.Play(s_StartHash);
+        AICharacterController.character.animator.Play(s_StartHash);
+        humanCharacterController.character.animator.Play(s_StartHash);
         float length = -1;// k_CountdownToStartLength;
 		m_TimeToStart = length;
 
@@ -145,12 +168,15 @@ public class TrackManager : MonoBehaviour
 
 		if (m_Rerun)
 		{
-			// Make invincible on rerun, to avoid problems if the character died in front of an obstacle
-			characterController.characterCollider.SetInvincible();
+            // Make invincible on rerun, to avoid problems if the character died in front of an obstacle
+            AICharacterController.characterCollider.SetInvincible();
+            humanCharacterController.characterCollider.SetInvincible();
 		}
 
-		characterController.StartRunning();
-		StartMove();
+        AICharacterController.StartRunning();
+        humanCharacterController.StartRunning();
+		StartMove(1);
+        StartMove(2);
 	}
 
 	public void Begin()
@@ -165,22 +191,45 @@ public class TrackManager : MonoBehaviour
 			// Since this is not a rerun, init the whole system (on rerun we want to keep the states we had on death)
 			m_CurrentSegmentDistance = k_StartingSegmentDistance;
 			m_TotalWorldDistance = 0.0f;
+            m_CurrentHumanCharSegmentDistance = k_StartingSegmentDistance;
+            m_TotalHumanCharWorldDistance = 0.0f;
 
-            characterController.gameObject.SetActive(true);
+            // AI Char
+
+            AICharacterController.gameObject.SetActive(true);
 
             // Spawn the player
-            Character player = Instantiate(CharacterDatabase.GetCharacter(PlayerData.instance.characters[PlayerData.instance.usedCharacter]), Vector3.zero, Quaternion.identity);
-			player.transform.SetParent(characterController.characterCollider.transform, false);
-			Camera.main.transform.SetParent(characterController.transform, true);
+            Character AIPlayer = Instantiate(CharacterDatabase.GetCharacter(PlayerData.instance.characters[PlayerData.instance.usedCharacter]), Vector3.zero, Quaternion.identity);
+			AIPlayer.transform.SetParent(AICharacterController.characterCollider.transform, false);
+			Camera.main.transform.SetParent(AICharacterController.transform, true);
 
 
-            player.SetupAccesory(PlayerData.instance.usedAccessory);
+            AIPlayer.SetupAccesory(PlayerData.instance.usedAccessory);
 
-			characterController.character = player;
-			characterController.trackManager = this;
+            AICharacterController.character = AIPlayer;
+            AICharacterController.trackManager = this;
 
-			characterController.Init();
-			characterController.CheatInvincible(invincible);
+            AICharacterController.Init();
+            AICharacterController.CheatInvincible(invincible);
+
+
+            // Human Char
+
+            humanCharacterController.gameObject.SetActive(true);
+
+            // Spawn the player
+            Character humanPlayer = Instantiate(CharacterDatabase.GetCharacter("Rubbish Raccoon"), Vector3.zero, Quaternion.identity);
+            humanPlayer.transform.SetParent(humanCharacterController.characterCollider.transform, false);
+            //Camera.main.transform.SetParent(humanCharacterController.transform, true);
+
+
+            humanPlayer.SetupAccesory(PlayerData.instance.usedAccessory);
+
+            humanCharacterController.character = humanPlayer;
+            humanCharacterController.trackManager = this;
+
+            humanCharacterController.Init();
+            humanCharacterController.CheatInvincible(invincible);
 
             m_CurrentThemeData = ThemeDatabase.GetThemeData(PlayerData.instance.themes[PlayerData.instance.usedTheme]);
 			m_CurrentZone = 0;
@@ -190,11 +239,18 @@ public class TrackManager : MonoBehaviour
 			RenderSettings.fogColor = m_CurrentThemeData.fogColor;
 			RenderSettings.fog = true;
             
+
+
             gameObject.SetActive(true);
-			characterController.gameObject.SetActive(true);
-			characterController.coins = 0;
-			characterController.premium = 0;
-        
+
+            AICharacterController.gameObject.SetActive(true);
+            AICharacterController.coins = 0;
+            AICharacterController.premium = 0;
+
+            humanCharacterController.gameObject.SetActive(true);
+            humanCharacterController.coins = 0;
+            humanCharacterController.premium = 0;
+
             m_Score = 0;
 			m_ScoreAccum = 0;
 
@@ -212,7 +268,8 @@ public class TrackManager : MonoBehaviour
 #endif
         }
 
-        characterController.Begin();
+        AICharacterController.Begin();
+        humanCharacterController.Begin();
 		StartCoroutine(WaitToStart());
 	}
 
@@ -231,15 +288,19 @@ public class TrackManager : MonoBehaviour
 		m_Segments.Clear();
 		m_PastSegments.Clear();
 
-		characterController.End();
+        AICharacterController.End();
+        humanCharacterController.End();
 
 		gameObject.SetActive(false);
-		Destroy(characterController.character.gameObject);
-		characterController.character = null;
+		Destroy(AICharacterController.character.gameObject);
+        AICharacterController.character = null;
+        Destroy(humanCharacterController.character.gameObject);
+        humanCharacterController.character = null;
 
         Camera.main.transform.SetParent(null);
 
-        characterController.gameObject.SetActive(false);
+        AICharacterController.gameObject.SetActive(false);
+        humanCharacterController.gameObject.SetActive(false);
 
 		for (int i = 0; i < parallaxRoot.childCount; ++i) 
 		{
@@ -247,10 +308,10 @@ public class TrackManager : MonoBehaviour
 		}
 
 		//if our consumable wasn't used, we put it back in our inventory
-		if (characterController.inventory != null) 
+		if (AICharacterController.inventory != null) 
 		{
-            PlayerData.instance.Add(characterController.inventory.GetConsumableType());
-			characterController.inventory = null;
+            PlayerData.instance.Add(AICharacterController.inventory.GetConsumableType());
+            AICharacterController.inventory = null;
 		}
 	}
 
@@ -281,106 +342,113 @@ public class TrackManager : MonoBehaviour
 			}
 		}
 
-		if (!m_IsMoving)
-			return;
+        if (!m_IsAICharMoving) //TODO fix for collision of the 2 players!!!
+        	return;
 
-		float scaledSpeed = m_Speed * Time.deltaTime;
-		m_ScoreAccum += scaledSpeed;
-		m_CurrentZoneDistance += scaledSpeed;
+        float scaledAICharSpeed = m_AICharSpeed * Time.deltaTime;
+        m_ScoreAccum += scaledAICharSpeed;
+        m_CurrentZoneDistance += scaledAICharSpeed;
 
-		int intScore = Mathf.FloorToInt(m_ScoreAccum);
-		if (intScore != 0) AddScore(intScore);
-		m_ScoreAccum -= intScore;
+        int intScore = Mathf.FloorToInt(m_ScoreAccum);
+        if (intScore != 0) AddScore(intScore);
+        m_ScoreAccum -= intScore;
 
-		m_TotalWorldDistance += scaledSpeed;
-		m_CurrentSegmentDistance += scaledSpeed;
+        m_TotalWorldDistance += scaledAICharSpeed;
+        m_CurrentSegmentDistance += scaledAICharSpeed;
 
-		if(m_CurrentSegmentDistance > m_Segments[0].worldLength)
-		{
-			m_CurrentSegmentDistance -= m_Segments[0].worldLength;
-
-			// m_PastSegments are segment we already passed, we keep them to move them and destroy them later 
-			// but they aren't part of the game anymore 
-			m_PastSegments.Add(m_Segments[0]);
-			m_Segments.RemoveAt(0);
-
-		}
-
-		Vector3 currentPos;
-		Quaternion currentRot;
-		Transform characterTransform = characterController.transform;
-
-		m_Segments[0].GetPointAtInWorldUnit(m_CurrentSegmentDistance, out currentPos, out currentRot);
-
-
-		// Floating origin implementation
-        // Move the whole world back to 0,0,0 when we get too far away.
-		bool needRecenter = currentPos.sqrMagnitude > k_FloatingOriginThreshold;
-
-		// Parallax Handling
-		if (parallaxRoot != null)
-		{
-			Vector3 difference = (currentPos - characterTransform.position) * parallaxRatio; ;
-			int count = parallaxRoot.childCount;
-			for (int i = 0; i < count; i++)
-			{
-				Transform cloud = parallaxRoot.GetChild(i);
-				cloud.position += difference - (needRecenter ? currentPos : Vector3.zero);
-			}
-		}
-
-		if (needRecenter)
+        if (m_CurrentSegmentDistance > m_Segments[0].worldLength)
         {
-			int count = m_Segments.Count;
-			for(int i = 0; i < count; i++)
+            m_CurrentSegmentDistance -= m_Segments[0].worldLength;
+
+            // m_PastSegments are segment we already passed, we keep them to move them and destroy them later 
+            // but they aren't part of the game anymore 
+            m_PastSegments.Add(m_Segments[0]);
+            m_Segments.RemoveAt(0);
+
+        }
+
+        Vector3 currentAICharPos;
+        Quaternion currentAICharRot;
+        Transform AICharTransform = AICharacterController.transform;
+        Transform humanCharTransform = humanCharacterController.transform;
+
+
+        m_Segments[0].GetPointAtInWorldUnit(m_CurrentSegmentDistance, out currentAICharPos, out currentAICharRot);
+
+        // Floating origin implementation
+        // Move the whole world back to 0,0,0 when we get too far away.
+        bool needRecenter = currentAICharPos.sqrMagnitude > k_FloatingOriginThreshold;
+
+        // Parallax Handling
+        if (parallaxRoot != null)
+        {
+            Vector3 difference = (currentAICharPos - AICharTransform.position) * parallaxRatio; ;
+            int count = parallaxRoot.childCount;
+            for (int i = 0; i < count; i++)
             {
-				m_Segments[i].transform.position -= currentPos;
-			}
+                Transform cloud = parallaxRoot.GetChild(i);
+                cloud.position += difference - (needRecenter ? currentAICharPos : Vector3.zero);
+            }
+        }
 
-			count = m_PastSegments.Count;
-			for(int i = 0; i < count; i++)
+        if (needRecenter)
+        {
+            int count = m_Segments.Count;
+            for (int i = 0; i < count; i++)
             {
-				m_PastSegments[i].transform.position -= currentPos;
-			}
+                m_Segments[i].transform.position -= currentAICharPos;
+            }
 
-			// Recalculate current world position based on the moved world
-			m_Segments[0].GetPointAtInWorldUnit(m_CurrentSegmentDistance, out currentPos, out currentRot);
-		}
+            count = m_PastSegments.Count;
+            for (int i = 0; i < count; i++)
+            {
+                m_PastSegments[i].transform.position -= currentAICharPos;
+            }
 
-		characterTransform.rotation = currentRot;
-		characterTransform.position = currentPos;
+            // Recalculate current world position based on the moved world
+            m_Segments[0].GetPointAtInWorldUnit(m_CurrentSegmentDistance, out currentAICharPos, out currentAICharRot);
+        }
 
-		if(parallaxRoot != null && currentTheme.cloudPrefabs.Length > 0)
-		{
-			for(int i = 0; i < parallaxRoot.childCount; ++i)
-			{
-				Transform child = parallaxRoot.GetChild(i);
+        AICharTransform.rotation = currentAICharRot;
+        AICharTransform.position = currentAICharPos;
+        humanCharTransform.rotation = currentAICharRot;
+        humanCharTransform.position = currentAICharPos;
 
-				// Destroy unneeded clouds
-				if ((child.localPosition - currentPos).z < -50)
-					Destroy(child.gameObject);
-			}
-		}
+        if (parallaxRoot != null && currentTheme.cloudPrefabs.Length > 0)
+        {
+            for (int i = 0; i < parallaxRoot.childCount; ++i)
+            {
+                Transform child = parallaxRoot.GetChild(i);
 
-		// Still move past segment until they aren't visible anymore.
-		for(int i = 0; i < m_PastSegments.Count; ++i)
-		{
-            if ((m_PastSegments[i].transform.position - currentPos).z < k_SegmentRemovalDistance)
-			{
-				m_PastSegments[i].Cleanup();
-				m_PastSegments.RemoveAt(i);
-				i--;
-			}
-		}
+                // Destroy unneeded clouds
+                if ((child.localPosition - currentAICharPos).z < -50)
+                    Destroy(child.gameObject);
+            }
+        }
 
-		PowerupSpawnUpdate();
+        // Still move past segment until they aren't visible anymore.
+        for (int i = 0; i < m_PastSegments.Count; ++i)
+        {
+            if ((m_PastSegments[i].transform.position - currentAICharPos).z < k_SegmentRemovalDistance)
+            {
+                m_PastSegments[i].Cleanup();
+                m_PastSegments.RemoveAt(i);
+                i--;
+            }
+        }
 
-		if (m_Speed < maxSpeed)
-            m_Speed += k_Acceleration * Time.deltaTime;
-		else
-			m_Speed = maxSpeed;
 
-        m_Multiplier = 1 + Mathf.FloorToInt((m_Speed - minSpeed) / (maxSpeed - minSpeed) * speedStep);
+        if (m_AICharSpeed < maxSpeed)
+            m_AICharSpeed += k_Acceleration * Time.deltaTime;
+        else
+            m_AICharSpeed = maxSpeed;
+
+        if (m_AICharSpeed < maxSpeed)
+            m_AICharSpeed += k_Acceleration * Time.deltaTime;
+        else
+            m_AICharSpeed = maxSpeed;
+
+        m_Multiplier = 1 + Mathf.FloorToInt((m_AICharSpeed - minSpeed) / (maxSpeed - minSpeed) * speedStep);
 
         if (modifyMultiply != null)
         {
@@ -392,7 +460,7 @@ public class TrackManager : MonoBehaviour
 
         //check for next rank achieved
         int currentTarget = (PlayerData.instance.rank + 1) * 300;
-        if(m_TotalWorldDistance > currentTarget)
+        if (m_TotalWorldDistance > currentTarget)
         {
             PlayerData.instance.rank += 1;
             PlayerData.instance.Save();
@@ -403,8 +471,17 @@ public class TrackManager : MonoBehaviour
         }
 
         PlayerData.instance.UpdateMissions(this);
-        MusicPlayer.instance.UpdateVolumes(speedRatio);
+        MusicPlayer.instance.UpdateVolumes(AICharSpeedRatio);
+
+
+
+        PowerupSpawnUpdate();
+
+
+
     }
+
+
 
     public void PowerupSpawnUpdate()
 	{
@@ -471,7 +548,7 @@ public class TrackManager : MonoBehaviour
 			for (int i = 0; i < segment.obstaclePositions.Length; ++i)
 			{
                 Obstacle newObstacle = segment.possibleObstacles[Random.Range(0, segment.possibleObstacles.Length)];
-                if (!characterController.isVerticalMovementEnabled)
+                if (!AICharacterController.isVerticalMovementEnabled)
                 {
                     // TODO fix pls
                     while (newObstacle is AllLaneObstacle)
