@@ -6,7 +6,7 @@
 We are a bunch of students of the **1-st International School on AI and Games** that took place in Chania, Greece.
 We come from Italy, Cyprus, Ukraine, Finland and Serbia with different background and without any practical knowledge how to train ML-Agents.
 
-We've implamanted simple machine learning agent in a chase to tech him how to play ruuner games.
+We've implemented simple machine learning agent in a chase to teach him how to play ruuner games.
 
 To speed up the process we took a simple runner game from Unity Asset Store - [Endless Runner - Sample Game](https://assetstore.unity.com/packages/essentials/tutorial-projects/endless-runner-sample-game-87901):
 ![Team - Something Epic](https://github.com/GameAISchool2018members/notg/blob/master/Img/InGame.png)
@@ -17,7 +17,7 @@ We stripped the game from moving obstacles like rats and dogs, as well as 3 line
 * and Do Nothing
 
 Training was done with 500.000 iterations.
-Agent took into account only rewards for distance, the further it goes - the bigger rewards. And a negative rewards for hitting the obstacles.
+Agent took into account only rewards for distance, the further it goes - the bigger reward. And a negative rewards for hitting the obstacles.
 
 ## [Video of the training process](https://youtu.be/JshzT8S9AKk)
 ## [Video of the AI play after training](https://youtu.be/4bEwlHhhq8k)
@@ -80,6 +80,6 @@ INFO:unityagents: CharacterBrain: Step: 198000. Mean Reward: 4.805. Std of Rewar
 
 ## What have we achieved?
 Due to the fact that we were not able to run any CUDA based learning, all the training took place on CPU with limited amount of iterations. 
-During the training we've observed agent to score as high as 11.000 points and around 2.500 points on after learning runs.
+During the training we've observed agent to score as high as 11.000 points and around 2.500 points on after learning was completed.
 
 Agent is still feels dumb at times, but sometimes he is surprisingly clever in avoiding obstacles. In general we are really amazed on what Unity ML-Agent learning framework can do, and we are really happy that our agent is able to avoid any obstacles in such a short time.
