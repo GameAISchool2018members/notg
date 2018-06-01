@@ -324,6 +324,12 @@ public class CharacterInputController : InputController
         }
     }
 
+    protected void FixedUpdate()
+    {
+        Vector3 verticalTargetPosition = m_TargetPosition;
+        characterCollider.transform.localPosition = Vector3.MoveTowards(characterCollider.transform.localPosition, verticalTargetPosition, laneChangeSpeed * Time.fixedDeltaTime);
+    }
+
     protected void Update()
     {
 
@@ -449,7 +455,7 @@ public class CharacterInputController : InputController
             }
         }
 
-        characterCollider.transform.localPosition = Vector3.MoveTowards(characterCollider.transform.localPosition, verticalTargetPosition, laneChangeSpeed * Time.deltaTime);
+
 
         // Put blob shadow under the character.
         RaycastHit hit;
@@ -548,6 +554,7 @@ public class CharacterInputController : InputController
     }
 
     private float[] lanes;
+    private const int MetersForAward = 10;
 
     public override void CollectObservations()
     {
@@ -559,7 +566,7 @@ public class CharacterInputController : InputController
         const float lowRayHeight = 0.1f;
         const float highRayHeight = 1.2f;
 
-        var angles = new float[] { 30f, 60f, 75f, 90f, 105f, 120f, 150f };
+        var angles = new float[] { 0f, 30f, 60f, 75f, 90f, 105f, 120f, 150f, 180f };
 
         var tags = new string[] { "obstacle" };
         List<float> highPerceptions = rayPerception.Perceive(rayLength, angles, tags, lowRayHeight, 0f);
@@ -573,17 +580,21 @@ public class CharacterInputController : InputController
         //    AddVectorObs(featureVector[i]);
         //}
     }
-    // TODO add lane info 1-hot
     // TODO tensorboard, maybe inrease enthropy reg
+
+    private int lastMeterPassed;
     public override void AgentAction(float[] vectorAction, string textAction)
     {
         int action = Mathf.FloorToInt(vectorAction[0]);
 #if !UNITY_EDITOR
         switch(action){
             case 0:
-                ChangeLane(-1);
+                // Do nothing 
                 break;
             case 1:
+                ChangeLane(-1);
+                break;
+            case 2:
                 ChangeLane(1);
                 break;
         }
@@ -591,12 +602,13 @@ public class CharacterInputController : InputController
 
         //if (Mathf.Approximately(0f, GetReward())) {
         //if (trackManager.score % 100 == 0){
-        AddReward(0.01f);
-    //}
-        //}
+        int currentMeter = Mathf.FloorToInt(trackManager.worldDistance);
+        if (currentMeter > lastMeterPassed && currentMeter > 0 && currentMeter % MetersForAward == 0) {
+            AddReward(0.5f);
+            lastMeterPassed = currentMeter;            
+        }
 
         if (currentLife <= 0) {
-            Debug.Log("Im done");
             Done();
         }
     }
@@ -604,11 +616,11 @@ public class CharacterInputController : InputController
     public override void AgentReset()
     {
         //ResetFeatures();
+        lastMeterPassed = 0;
 
         ((GameState)GameManager.instance.FindState("Game")).ResetAll();
     }
 
-    
 
     private void ResetFeatures()
     {
