@@ -3,8 +3,8 @@
 ## Who we are?
 
 ![Team - Something Epic](https://github.com/GameAISchool2018members/notg/blob/master/Img/Team%20(SomethingEpic).JPG)
-We are a bunch of 1st Internation school on AI that took place in Chania, Greece.
-We are from Italy, Cyprus, Ukraine, Finland and Serbia.
+We are a bunch of students on 1st Internation school on AI that took place in Chania, Greece.
+We come from Italy, Cyprus, Ukraine, Finland and Serbia.
 
 Simple machine learning agent
 
