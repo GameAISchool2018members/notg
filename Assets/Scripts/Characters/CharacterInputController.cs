@@ -13,11 +13,9 @@ public class CharacterInputController : InputController
     static int s_JumpingSpeedHash = Animator.StringToHash("JumpSpeed");
     static int s_SlidingHash = Animator.StringToHash("Sliding");
 
-
     public GameObject blobShadow;
     public RayPerception rayPerception;
     public float laneChangeSpeed = 1.0f;
-        
 
     public Consumable inventory;
 
@@ -34,8 +32,6 @@ public class CharacterInputController : InputController
 
     [Header("Sounds")]
     public AudioClip slideSound;
-
-
 
     protected int m_ObstacleLayer;
 
@@ -61,9 +57,6 @@ public class CharacterInputController : InputController
     protected const float k_TrackSpeedToSlideAnimSpeedRatio = 0.9f;
     public Dictionary<string, float> obstacleMapping;
 
-    private const int NumberOfFeatures = 12;
-    public float[] featureVector;
-
     protected void Awake()
 
     {
@@ -76,15 +69,12 @@ public class CharacterInputController : InputController
         obstacleMapping.Add("ObstacleBin(Clone)", 1);
         obstacleMapping.Add("ObstacleWheelyBin(Clone)", 1);
         obstacleMapping.Add("ObstacleRoadworksCone(Clone)", 1);
-        featureVector = new float[NumberOfFeatures];
-        ResetFeatures();
     }
 
 #if !UNITY_STANDALONE
     protected Vector2 m_StartingTouch;
 	protected bool m_IsSwiping = false;
 #endif
-
 
     public void Init()
     {
@@ -99,11 +89,11 @@ public class CharacterInputController : InputController
         m_Audio = GetComponent<AudioSource>();
 
         m_ObstacleLayer = 1 << LayerMask.NameToLayer("Obstacle");
-
-        lanes = new float[3];
+        m_Jumping = false;
+        m_Sliding = false;
     }
 
-    private void UpdateLanes() {
+    private void UpdateOneHotLanesVector() {
         switch (m_CurrentLane)
         {
             case 0:
@@ -151,192 +141,60 @@ public class CharacterInputController : InputController
         m_ActiveConsumables.Clear();
     }
 
-
     private const float RaycastLength = 30f;
-
-    public float CalculateNormalDistance(RaycastHit hit)
-    {
-        float distance = Vector3.Distance(hit.transform.position, transform.position);
-        //Debug.Log(hit.point + " Hit " + hit.collider.gameObject.name + " Distance " + hit.distance + " calculated distance " + distance);
-        if (hit.collider.gameObject.name.Equals("Pickup(Clone)")) return 1f;
-
-
-        return (RaycastLength - distance) / RaycastLength;   // max - cur / max - min
-    }
-
-    private void CalculateFeatureVector()
-    {
-        RaycastHit hit;
-
-        float lowRayHeight = 0.3f;
-        float highRayHeight = 1.2f;
-
-        float leftWidth = -1.5f;
-        float centerWidth = 0f;
-        float rightWidth = 1.5f;
-
-        Vector3 lowRayStraight = new Vector3(centerWidth, transform.position.y + lowRayHeight, transform.position.z);
-        Vector3 lowRayLeft = new Vector3(leftWidth, transform.position.y + lowRayHeight, transform.position.z);
-        Vector3 lowRayRight = new Vector3(rightWidth, transform.position.y + lowRayHeight, transform.position.z);
-
-        Vector3 highRayStraight = new Vector3(centerWidth, transform.position.y + highRayHeight, transform.position.z);
-        Vector3 HighRayLeft = new Vector3(leftWidth, transform.position.y + highRayHeight, transform.position.z);
-        Vector3 HighRayRight = new Vector3(rightWidth, transform.position.y + highRayHeight, transform.position.z);
-
-        Vector3 ahead = transform.forward;
-        ahead = ahead.normalized;
-        float rayLength = 30.0f;
-
-        // IF NO RAY THEN USE 1
-
-        // HIGH LEFT
-        if (Physics.Raycast(HighRayLeft, ahead, out hit, rayLength))
-        {
-            //print ("Left "+hit.transform.position);
-            //print ("Left High: " + obstacleMapping [hit.collider.gameObject.name]);
-
-            //if (hit.collider.gameObject.name.Equals("Pickup(Clone)"))
-            //{
-            //    featureVector.Add(0f);
-            //} else {
-            //    featureVector.Add(1f);
-            //}
-            featureVector[0] = CalculateNormalDistance(hit);
-        }
-        else
-        {
-            //featureVector.Add (0.0f);
-            featureVector[0] = 1.0f;
-        }
-
-        // HIGH RIGHT
-        if (Physics.Raycast(HighRayRight, ahead, out hit, rayLength))
-        {
-            //print ("Right "+hit.transform.position);
-            //print ("Right High: "+ obstacleMapping[hit.collider.gameObject.name]);
-
-            //if (hit.collider.gameObject.name.Equals("Pickup(Clone)"))
-            //{
-            //    featureVector.Add(0f);
-            //}
-            //else
-            //{
-            //    featureVector.Add(1f);
-            //}
-            featureVector[1] = CalculateNormalDistance(hit);
-        }
-        else
-        {
-            //featureVector.Add (0.0f);
-            featureVector[1] = 1.0f;
-        }
-
-        // LOW LEFT
-        if (Physics.Raycast(lowRayLeft, ahead, out hit, rayLength))
-        {
-            //print ("Left "+hit.transform.position);
-            //print ("Left low: "+ obstacleMapping[hit.collider.gameObject.name]);
-
-            //if (hit.collider.gameObject.name.Equals("Pickup(Clone)"))
-            //{
-            //    featureVector.Add(0f);
-            //}
-            //else
-            //{
-            //    featureVector.Add(1f);
-            //}
-            featureVector[2] = CalculateNormalDistance(hit);
-            //featureVector.Add (obstacleMapping [hit.collider.gameObject.name]);
-        }
-        else
-        {
-            //featureVector.Add (0.0f);
-            featureVector[2] = 1.0f;
-        }
-
-        // LOW RIGHT
-        if (Physics.Raycast(lowRayRight, ahead, out hit, rayLength))
-        {
-            //print ("Right "+hit.transform.position);
-            //print ("Right low: "+ obstacleMapping[hit.collider.gameObject.name]);
-
-            //if (hit.collider.gameObject.name.Equals("Pickup(Clone)"))
-            //{
-            //    featureVector.Add(0f);
-            //}
-            //else
-            //{
-            //    featureVector.Add(1f);
-            //}
-            featureVector[3] = CalculateNormalDistance(hit);
-            //featureVector.Add (obstacleMapping [hit.collider.gameObject.name]);
-        }
-        else
-        {
-            //featureVector.Add (0.0f);
-            featureVector[3] = 1.0f;
-        }
-
-        // HIGH STRAIGHT
-        if (Physics.Raycast(highRayStraight, ahead, out hit, rayLength))
-        {
-            //print ("heah "+hit.transform.position);
-            //print ("HIGH: "+ obstacleMapping[hit.collider.gameObject.name]);
-
-            //if (hit.collider.gameObject.name.Equals("Pickup(Clone)"))
-            //{
-            //    featureVector.Add(0f);
-            //}
-            //else
-            //{
-            //    featureVector.Add(1f);
-            //}
-            featureVector[4] = CalculateNormalDistance(hit);
-            //featureVector.Add (obstacleMapping [hit.collider.gameObject.name]);
-        }
-        else
-        {
-            //featureVector.Add (0.0f);
-            featureVector[4] = 1.0f;
-        }
-
-        // LOW STRAIGHT
-        if (Physics.Raycast(lowRayStraight, ahead, out hit, rayLength))
-        {
-            //print ("heah "+hit.transform.position);
-            //print ("LOW: "+ obstacleMapping[hit.collider.gameObject.name]);
-
-            //if (hit.collider.gameObject.name.Equals("Pickup(Clone)"))
-            //{
-            //    featureVector.Add(0f);
-            //}
-            //else
-            //{
-            //    featureVector.Add(1f);
-            //}
-            featureVector[5] = CalculateNormalDistance(hit);
-            //featureVector.Add (obstacleMapping [hit.collider.gameObject.name]);
-        }
-        else
-        {
-            //featureVector.Add (0.0f);
-            featureVector[5] = 1.0f;
-        }
-    }
 
     protected void FixedUpdate()
     {
         Vector3 verticalTargetPosition = m_TargetPosition;
+
+        if (m_Sliding)
+        {
+            // Slide time isn't constant but the slide length is (even if slightly modified by speed, to slide slightly further when faster).
+            // This is for gameplay reason, we don't want the character to drasticly slide farther when at max speed.
+            float correctSlideLength = slideLength * (1.0f + trackManager.AICharSpeedRatio);
+            float ratio = (trackManager.worldDistance - m_SlideStart) / correctSlideLength;
+            if (ratio >= 1.0f)
+            {
+                // We slid to (or past) the required length, go back to running
+                StopSliding();
+            }
+        }
+
+        if (m_Jumping)
+        {
+            if (trackManager.isAICharMoving)
+            {
+                // Same as with the sliding, we want a fixed jump LENGTH not fixed jump TIME. Also, just as with sliding,
+                // we slightly modify length with speed to make it more playable.
+                float correctJumpLength = jumpLength * (1.0f + trackManager.AICharSpeedRatio);
+                float ratio = (trackManager.worldDistance - m_JumpStart) / correctJumpLength;
+                if (ratio >= 1.0f)
+                {
+                    m_Jumping = false;
+                    character.animator.SetBool(s_JumpingHash, false);
+                }
+                else
+                {
+                    verticalTargetPosition.y = Mathf.Sin(ratio * Mathf.PI) * jumpHeight;
+                }
+            }
+            else if (!AudioListener.pause)//use AudioListener.pause as it is an easily accessible singleton & it is set when the app is in pause too
+            {
+                verticalTargetPosition.y = Mathf.MoveTowards(verticalTargetPosition.y, 0, k_GroundingSpeed * Time.deltaTime);
+                if (Mathf.Approximately(verticalTargetPosition.y, 0f))
+                {
+                    character.animator.SetBool(s_JumpingHash, false);
+                    m_Jumping = false;
+                }
+            }
+
+        }
+
         characterCollider.transform.localPosition = Vector3.MoveTowards(characterCollider.transform.localPosition, verticalTargetPosition, laneChangeSpeed * Time.fixedDeltaTime);
     }
 
     protected void Update()
     {
-
-        // OUR RAYCASTING START
-        //CalculateFeatureVector();
-        // OUR RAYCASTING END
-
 #if UNITY_EDITOR || UNITY_STANDALONE
         // Use key input in editor or standalone
         //if (Input.GetKeyDown(KeyCode.LeftArrow))
@@ -410,51 +268,6 @@ public class CharacterInputController : InputController
 			}
         }
 #endif
-
-        Vector3 verticalTargetPosition = m_TargetPosition;
-
-        if (m_Sliding)
-        {
-            // Slide time isn't constant but the slide length is (even if slightly modified by speed, to slide slightly further when faster).
-            // This is for gameplay reason, we don't want the character to drasticly slide farther when at max speed.
-            float correctSlideLength = slideLength * (1.0f + trackManager.AICharSpeedRatio);
-            float ratio = (trackManager.worldDistance - m_SlideStart) / correctSlideLength;
-            if (ratio >= 1.0f)
-            {
-                // We slid to (or past) the required length, go back to running
-                StopSliding();
-            }
-        }
-
-        if (m_Jumping)
-        {
-            if (trackManager.isAICharMoving)
-            {
-                // Same as with the sliding, we want a fixed jump LENGTH not fixed jump TIME. Also, just as with sliding,
-                // we slightly modify length with speed to make it more playable.
-                float correctJumpLength = jumpLength * (1.0f + trackManager.AICharSpeedRatio);
-                float ratio = (trackManager.worldDistance - m_JumpStart) / correctJumpLength;
-                if (ratio >= 1.0f)
-                {
-                    m_Jumping = false;
-                    character.animator.SetBool(s_JumpingHash, false);
-                }
-                else
-                {
-                    verticalTargetPosition.y = Mathf.Sin(ratio * Mathf.PI) * jumpHeight;
-                }
-            }
-            else if (!AudioListener.pause)//use AudioListener.pause as it is an easily accessible singleton & it is set when the app is in pause too
-            {
-                verticalTargetPosition.y = Mathf.MoveTowards(verticalTargetPosition.y, 0, k_GroundingSpeed * Time.deltaTime);
-                if (Mathf.Approximately(verticalTargetPosition.y, 0f))
-                {
-                    character.animator.SetBool(s_JumpingHash, false);
-                    m_Jumping = false;
-                }
-            }
-        }
-
 
 
         // Put blob shadow under the character.
@@ -532,7 +345,6 @@ public class CharacterInputController : InputController
         m_CurrentLane = lane;
 
         m_TargetPosition = new Vector3((m_CurrentLane - 1) * trackManager.laneOffset, 0, 0);
-
     }
 
     public void ChangeLane(int direction)
@@ -563,29 +375,26 @@ public class CharacterInputController : InputController
 
     #region AI stuff
 
+    private int lastMeterPassed;
+    private float[] lanes;
 
     public override void InitializeAgent()
     {
         base.InitializeAgent();
-        rayPerception = GetComponentInChildren<RayPerception>();
-        //Brain characterBrain = FindObjectOfType<Brain>();
-        //GiveBrain(characterBrain);
+        lanes = new float[3];
+        UpdateOneHotLanesVector();
     }
-
-    private float[] lanes;
-    private const int MetersForAward = 10;
 
     public override void CollectObservations()
     {
-        UpdateLanes();
+        UpdateOneHotLanesVector();
         AddVectorObs(lanes);
 
-        // 6 DOF raycasts
         const float rayLength = 30.0f;
-        const float lowRayHeight = 0.1f;
-        const float highRayHeight = 1.2f;
+        const float lowRayHeight = 0.35f;
+        const float highRayHeight = 1.55f;
 
-        var angles = new float[] { 0f, 30f, 60f, 75f, 90f, 105f, 120f, 150f, 180f };
+        var angles = new float[] { 0f, 30f, 60f, 75f, 85f, 90f, 95f, 105f, 120f, 150f, 180f };
 
         var tags = new string[] { "obstacle" };
         List<float> highPerceptions = rayPerception.Perceive(rayLength, angles, tags, lowRayHeight, 0f);
@@ -593,38 +402,35 @@ public class CharacterInputController : InputController
 
         AddVectorObs(highPerceptions);
         AddVectorObs(lowPerceptions);
-
-        //for (int i = 0; i < 6; i++)
-        //{
-        //    AddVectorObs(featureVector[i]);
-        //}
     }
-    // TODO tensorboard, maybe inrease enthropy reg
 
-    private int lastMeterPassed;
     public override void AgentAction(float[] vectorAction, string textAction)
     {
         int action = Mathf.FloorToInt(vectorAction[0]);
-//#if !UNITY_EDITOR
         switch(action){
-            case 0:
+            case 1:
                 ChangeLaneDirectly(0);
                 break;
-            case 1:
+            case 2:
                 ChangeLaneDirectly(1);
                 break;
-            case 2:
+            case 3:
                 ChangeLaneDirectly(2);
                 break;
+            case 4:
+                if (isVerticalMovementEnabled)
+                    Jump();
+                break;
+            case 5:
+                if (isVerticalMovementEnabled)
+                    Slide();
+                break;
         }
-//#endif
 
-        //if (Mathf.Approximately(0f, GetReward())) {
-        //if (trackManager.score % 100 == 0){
         int currentMeter = Mathf.FloorToInt(trackManager.worldDistance);
-        if (currentMeter > lastMeterPassed && currentMeter > 0 && currentMeter % MetersForAward == 0) {
-            AddReward(0.5f);
-            lastMeterPassed = currentMeter;            
+        if (currentMeter > lastMeterPassed && currentMeter > 0 && currentMeter % trackManager.UnitDistance == 0) {
+            AddReward(trackManager.RewardForDistance);
+            lastMeterPassed = currentMeter;
         }
 
         if (currentLife <= 0) {
@@ -634,17 +440,10 @@ public class CharacterInputController : InputController
 
     public override void AgentReset()
     {
-        //ResetFeatures();
         lastMeterPassed = 0;
 
         ((GameState)GameManager.instance.FindState("Game")).ResetAll();
     }
 
-
-    private void ResetFeatures()
-    {
-        for (int i = 0; i < NumberOfFeatures; i++)
-            featureVector[i] = 0f;
-    }
 #endregion
 }

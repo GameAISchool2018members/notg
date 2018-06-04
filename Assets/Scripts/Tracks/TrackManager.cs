@@ -53,6 +53,13 @@ public class TrackManager : MonoBehaviour
 	public Transform parallaxRoot;
 	public float parallaxRatio = 0.5f;
 
+
+    [Header("AI")]
+    public float RewardForCoin;
+    public float RewardForObstacle;
+    public float RewardForDistance;
+    public int UnitDistance;
+
 	public int trackSeed {  get { return m_TrackSeed; } set { m_TrackSeed = value; } }
 
     public float timeToStart { get { return m_TimeToStart; } }  // Will return -1 if already started (allow to update UI)

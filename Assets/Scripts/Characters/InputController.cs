@@ -89,11 +89,11 @@ public class InputController : Agent {
 
     public void CoinCollided()
     {
-        //AddReward(0.2f);
+        AddReward(trackManager.RewardForCoin);
     }
 
     public void ObstacleCollided()
     {
-        AddReward(-2f);
+        AddReward(trackManager.RewardForObstacle);
     }
 }

@@ -45,6 +45,7 @@ public class RayPerception : MonoBehaviour
                 {
                     if (hit.collider.gameObject.CompareTag(detectableObjects[i]))
                     {
+                        //Debug.Log(detectableObjects[i] + " at " + angle + " deg, height: " + startOffset);
                         subList[i] = 1;
                         subList[detectableObjects.Length + 1] = hit.distance / rayDistance;
                         break;
