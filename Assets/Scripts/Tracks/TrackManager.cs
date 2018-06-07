@@ -476,7 +476,7 @@ public class TrackManager : MonoBehaviour
         else
             m_AICharSpeed = maxSpeed;
 
-        m_Multiplier = 1 + Mathf.FloorToInt((m_AICharSpeed - minSpeed) / (maxSpeed - minSpeed) * speedStep);
+        m_Multiplier = 1 + Mathf.FloorToInt(AICharSpeedRatio * speedStep);
 
         if (modifyMultiply != null)
         {

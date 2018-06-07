@@ -21,7 +21,7 @@ public class RayPerception : MonoBehaviour
     /// <param name="endOffset">Ending height offset of ray from center of agent.</param>
     public List<float> Perceive(float rayDistance,
                          float[] rayAngles, string[] detectableObjects,
-                          float startOffset, float endOffset)
+                          Vector3 startOffset, Vector3 endOffset, Color32 debugRayColor)
     {
         perceptionBuffer.Clear();
         // For each ray sublist stores categorial information on detected object
@@ -30,22 +30,25 @@ public class RayPerception : MonoBehaviour
         {
             endPosition = transform.TransformDirection(
                 PolarToCartesian(rayDistance, angle));
-            endPosition.y = endOffset;
+            endPosition.y = endOffset.y;
             if (Application.isEditor)
             {
-                Debug.DrawRay(transform.position + new Vector3(0f, startOffset, 0f),
-              endPosition, Color.black, 0.01f, true);
+                Debug.DrawRay(transform.position + startOffset,
+                              endPosition, debugRayColor, 0.01f, true);
             }
             float[] subList = new float[detectableObjects.Length + 2];
             if (Physics.SphereCast(transform.position +
-                                   new Vector3(0f, startOffset, 0f), 0.5f,
+                                   startOffset, 0.5f,
                                    endPosition, out hit, rayDistance))
             {
                 for (int i = 0; i < detectableObjects.Length; i++)
                 {
                     if (hit.collider.gameObject.CompareTag(detectableObjects[i]))
                     {
-                        //Debug.Log(detectableObjects[i] + " at " + angle + " deg, height: " + startOffset);
+                        if (Application.isEditor)
+                        {
+                            Debug.Log(detectableObjects[i] + " at " + angle + " deg, offset: " + startOffset);
+                        }
                         subList[i] = 1;
                         subList[detectableObjects.Length + 1] = hit.distance / rayDistance;
                         break;

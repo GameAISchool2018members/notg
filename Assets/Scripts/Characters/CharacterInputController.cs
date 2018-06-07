@@ -93,28 +93,6 @@ public class CharacterInputController : InputController
         m_Sliding = false;
     }
 
-    private void UpdateOneHotLanesVector() {
-        switch (m_CurrentLane)
-        {
-            case 0:
-                lanes[0] = 1f;
-                lanes[1] = 0f;
-                lanes[2] = 0f;
-                break;
-            case 1:
-                lanes[0] = 0f;
-                lanes[1] = 1f;
-                lanes[2] = 0f;
-                break;
-            case 2:
-                lanes[0] = 0f;
-                lanes[1] = 0f;
-                lanes[2] = 1f;
-                break;
-        }
-                
-    }
-
     // Called at the beginning of a run or rerun
     public void Begin()
     {
@@ -140,8 +118,6 @@ public class CharacterInputController : InputController
 
         m_ActiveConsumables.Clear();
     }
-
-    private const float RaycastLength = 30f;
 
     protected void FixedUpdate()
     {
@@ -376,45 +352,58 @@ public class CharacterInputController : InputController
     #region AI stuff
 
     private int lastMeterPassed;
-    private float[] lanes;
+
+    public bool FarPerceptionsEnabled = false;
+    public float FarDistanceOffset = 6f;
+    public float LowPerceptionHeightOffset = 0.1f;
+    public float HighPerceptionHeightOffset = 1.2f;
+    public float RayLength = 30f;
 
     public override void InitializeAgent()
     {
         base.InitializeAgent();
-        lanes = new float[3];
-        UpdateOneHotLanesVector();
     }
 
     public override void CollectObservations()
     {
-        UpdateOneHotLanesVector();
-        AddVectorObs(lanes);
-
-        const float rayLength = 30.0f;
-        const float lowRayHeight = 0.35f;
-        const float highRayHeight = 1.55f;
+        AddVectorObs(characterCollider.transform.localPosition.x);
 
         var angles = new float[] { 0f, 30f, 60f, 75f, 85f, 90f, 95f, 105f, 120f, 150f, 180f };
 
-        var tags = new string[] { "obstacle" };
-        List<float> highPerceptions = rayPerception.Perceive(rayLength, angles, tags, lowRayHeight, 0f);
-        List<float> lowPerceptions = rayPerception.Perceive(rayLength, angles, tags, highRayHeight, 0f);
+        var fishTags = new string[] { "fish" };
+        var obstacleTags = new string[] { "obstacle" };
 
-        AddVectorObs(highPerceptions);
-        AddVectorObs(lowPerceptions);
+        var nearOffsetLow = new Vector3(0f, LowPerceptionHeightOffset, 0f);
+        var nearOffsetHigh = new Vector3(0f, HighPerceptionHeightOffset, 0f);
+        List<float> lowPerceptionsNear = rayPerception.Perceive(RayLength, angles, fishTags, nearOffsetLow, Vector3.zero, Color.black);
+        List<float> highPerceptionsNear = rayPerception.Perceive(RayLength, angles, obstacleTags, nearOffsetHigh, Vector3.zero, Color.blue);
+
+        AddVectorObs(lowPerceptionsNear);
+        AddVectorObs(highPerceptionsNear);
+
+        if (FarPerceptionsEnabled)
+        {
+            var farOffsetLow = new Vector3(0f, LowPerceptionHeightOffset, FarDistanceOffset);
+            var farOffsetHigh = new Vector3(0f, HighPerceptionHeightOffset, FarDistanceOffset);
+            List<float> highPerceptionsFar = rayPerception.Perceive(RayLength, angles, fishTags, farOffsetLow, Vector3.zero, Color.red);
+            List<float> lowPerceptionsFar = rayPerception.Perceive(RayLength, angles, obstacleTags, farOffsetHigh, Vector3.zero, Color.yellow);
+
+            AddVectorObs(lowPerceptionsFar);
+            AddVectorObs(highPerceptionsFar);
+        }
     }
 
     public override void AgentAction(float[] vectorAction, string textAction)
     {
         int action = Mathf.FloorToInt(vectorAction[0]);
         switch(action){
+            case 0:
+                ChangeLaneDirectly(1);
+                break;
             case 1:
                 ChangeLaneDirectly(0);
                 break;
             case 2:
-                ChangeLaneDirectly(1);
-                break;
-            case 3:
                 ChangeLaneDirectly(2);
                 break;
             case 4:
@@ -427,15 +416,17 @@ public class CharacterInputController : InputController
                 break;
         }
 
-        int currentMeter = Mathf.FloorToInt(trackManager.worldDistance);
-        if (currentMeter > lastMeterPassed && currentMeter > 0 && currentMeter % trackManager.UnitDistance == 0) {
-            AddReward(trackManager.RewardForDistance);
-            lastMeterPassed = currentMeter;
+        //int currentMeter = Mathf.FloorToInt(trackManager.worldDistance);
+        //if (currentMeter > lastMeterPassed && currentMeter > 0 && currentMeter % trackManager.UnitDistance == 0) {
+        AddReward(1f / agentParameters.maxStep);
+        if (Application.isEditor)
+        {
+            Monitor.Log("Reward", GetReward());
+            Monitor.Log("Cummulative", GetCumulativeReward());
+            Monitor.Log("Step", GetStepCount());
         }
-
-        if (currentLife <= 0) {
-            Done();
-        }
+            //lastMeterPassed = currentMeter;
+        //}
     }
 
     public override void AgentReset()

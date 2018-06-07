@@ -42,6 +42,7 @@ public class GameManager : MonoBehaviour
 
         m_StateStack.Clear();
         PushState(states[0].GetName());
+        AudioListener.volume = 0f;
     }
 
     protected void Update()
